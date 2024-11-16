@@ -7,9 +7,8 @@
 TARGET := mnist_cnn
 SRC := mnist_cnn.cpp
 LIBS_NAME := armadillo
-
 CXX := g++
-CXXFLAGS += -std=c++17
+CXXFLAGS += -std=c++17 -DMLPACK_ENABLE_ANN_SERIALIZATION
 # Use these CXXFLAGS instead if you want to compile with debugging symbols and
 # without optimizations.
 # CXXFLAGS += -std=c++17 -Wall -Wextra -g -O0
