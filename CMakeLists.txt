@@ -1,16 +1,11 @@
+# Specify the minimum CMake version
 cmake_minimum_required(VERSION 3.10)
 
-project(MyCppProject)
+# Set the project name and language
+project(ComputerVisionCpp)
 
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+# Enable C++14 or later
+set(CMAKE_CXX_STANDARD 14)
 
-# Add include directory
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
-# Add the source directory
+# Add the src directory to the build process
 add_subdirectory(src)
-
-# Optionally, add tests
-enable_testing()
-add_subdirectory(tests)
