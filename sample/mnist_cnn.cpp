@@ -1,5 +1,4 @@
 #include <mlpack.hpp>
-#include <csignal>
 
 using namespace mlpack;
 
@@ -18,16 +17,8 @@ Row<size_t> getLabels(const mat& predOut)
   return predLabels;
 }
 
-bool stopRequested = false;
-
-void signalHandler(int signum)
-{
-    stopRequested = true;
-}
-
 int main()
 {
-    signal(SIGINT, signalHandler);
 
     constexpr double RATIO = 0.2; // split into valid and train with 0.1 ratio
     const int EPOCHS = 10; // allow 60 passes over training unless early stop
@@ -105,12 +96,6 @@ int main()
                     }
                 )
     );
-
-    if (stopRequested)
-    {
-        cout << "Training interrupted by user" << endl;
-        mlpack::data::Save("model.bin", "model", model, false);
-    }
 
     mat predOut; // matrix to store the predictions on train and valid dataset
     model.Predict(trainX, predOut);
