@@ -50,7 +50,8 @@ std::vector<std::vector<std::string>> CSVParser::parse(const std::string& csvFil
     std::ifstream file(filename);
     
     if (!file.is_open()) {
-        console.log("Could not open file \""+filename+"\".",Console::ERROR);
+        Console::log("Could not open file \""+filename+"\".",Console::ERROR);
+        return result;
     }
     
     std::string line;
@@ -66,7 +67,7 @@ std::vector<std::vector<std::string>> CSVParser::parse(const std::string& csvFil
         }
     } catch (const std::exception& e) {
         file.close();
-        console.log("In file: \""+filename+"\": line "+std::to_string(lineNumber)+": "+e.what(), Console::ERROR);
+        Console::log("In file: \""+filename+"\": line "+std::to_string(lineNumber)+": "+e.what(), Console::ERROR);
     }
 
     file.close();
