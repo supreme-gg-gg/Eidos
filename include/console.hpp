@@ -4,27 +4,32 @@
 #include <string>
 #include <iostream>
 
-class Console {
-public:
-    // simulate enum
-    
-    using Flags = unsigned char;
-    static const Flags INFO = 0;
-    static const Flags WARNING = 1;
-    static const Flags ERROR = 2;
-    static const Flags DEBUG = 3;
-    static const Flags WORSHIP = 4;
-    
-    Console(bool debugMode=false, bool treatWarningAsError=false, bool onlyLogErrors = false, bool quietMode=false) {
-        this->config(debugMode, treatWarningAsError, onlyLogErrors, quietMode);
+namespace Console {
+    enum Flags {
+        INFO = 0,
+        WARNING,
+        ERROR,
+        DEBUG,
+        WORSHIP
     };
-    
+
+    extern bool debugMode;
+    extern bool treatWarningAsError;
+    extern bool onlyLogErrors;
+    extern bool quietMode; // Suppress all messages including errors
+    inline void config(bool debugMode=false, bool treatWarningAsError=false, bool onlyLogErrors = false, bool quietMode=false) {
+        Console::debugMode = debugMode;
+        Console::treatWarningAsError = treatWarningAsError;
+        Console::onlyLogErrors = onlyLogErrors;
+        Console::quietMode = quietMode;
+    }
+
     // Prints a message to standard output, styled with the specified message flag.
     inline void log(std::string content, Console::Flags flag = Console::INFO) {
-        if (this->quietMode || (flag != Console::ERROR && this->onlyLogErrors) || (flag == Console::DEBUG && !this->debugMode)) {
+        if (Console::quietMode || (flag != Console::ERROR && Console::onlyLogErrors) || (flag == Console::DEBUG && !Console::debugMode)) {
             return;
         }
-        if (flag == Console::WARNING && this->onlyLogErrors) {
+        if (flag == Console::WARNING && Console::onlyLogErrors) {
             flag = Console::ERROR;
         }
         std::string output;
@@ -45,7 +50,7 @@ public:
                 output = "[+69420 GEORGIST CREDIT]: ";
                 break;
         }
-        output += content + "\n";
+        output += content;
         if (flag == Console::ERROR) {
             std::cerr << output << std::endl;
         }
@@ -56,10 +61,10 @@ public:
     
     // Prints a message to standard output, styled with the specified message flag.
     inline void log(std::wstring content, Console::Flags flag = Console::INFO) {
-        if (this->quietMode || (flag != Console::ERROR && this->onlyLogErrors) || (flag == Console::DEBUG && !this->debugMode)) {
+        if (Console::quietMode || (flag != Console::ERROR && Console::onlyLogErrors) || (flag == Console::DEBUG && !Console::debugMode)) {
             return;
         }
-        if (flag == Console::WARNING && this->onlyLogErrors) {
+        if (flag == Console::WARNING && Console::treatWarningAsError) {
             flag = Console::ERROR;
         }
         std::wstring output;
@@ -80,27 +85,14 @@ public:
                 output = L"[+69420 GEORGIST CREDIT]: ";
                 break;
         }
-        output += content + L"\n";
+        output += content;
         if (flag == Console::ERROR) {
             std::wcerr << output << std::endl;
         }
         else {
             std::wcout << output << std::endl;
         }
-    }
-    
-    bool debugMode;
-    bool treatWarningAsError;
-    bool onlyLogErrors;
-    bool quietMode; // Suppress all messages including errors
-    inline void config(bool debugMode=false, bool treatWarningAsError=false, bool onlyLogErrors = false, bool quietMode=false) {
-        this->debugMode = debugMode;
-        this->treatWarningAsError = treatWarningAsError;
-        this->onlyLogErrors = onlyLogErrors;
-        this->quietMode = quietMode;
-    }
-};
-
-Console console;
+    }    
+}
 
 #endif //CONSOLE_H
