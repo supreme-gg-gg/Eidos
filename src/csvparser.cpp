@@ -41,7 +41,7 @@ std::vector<std::string> CSVParser::parseLine(const std::string& line) {
     return fields;
 }
 
-CSVParser::CSVParser(char delim = ',')
+CSVParser::CSVParser(char delim /*= ','*/)
     : delimiter(delim) {}
 
 std::vector<std::vector<std::string>> CSVParser::parse(const std::string& csvFilename) {

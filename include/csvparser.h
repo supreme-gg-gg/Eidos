@@ -8,7 +8,7 @@
 A basic helper class to parse CSV files
 Usage:
 ```
-CSVParser parser();
+CSVParser parser;
 auto data = parser.parse(filename);
 ```
 */
@@ -18,7 +18,7 @@ private:
     char delimiter;
     std::vector<std::string> parseLine(const std::string& line);
 public:
-    CSVParser(char delim);
+    CSVParser(char delim=',');
     std::vector<std::vector<std::string>> parse(const std::string& csvFilename);
 };
 
