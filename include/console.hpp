@@ -101,4 +101,6 @@ public:
     }
 };
 
+Console console;
+
 #endif //CONSOLE_H
