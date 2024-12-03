@@ -21,7 +21,7 @@ int main()
 {
 
     constexpr double RATIO = 0.2; // split into valid and train with 0.1 ratio
-    const int EPOCHS = 10; // allow 60 passes over training unless early stop
+    const int EPOCHS = 5; // allow 60 passes over training unless early stop
     const int BATCH_SIZE = 64; // num of data ponits in each iter of SGD
     const double STEP_SIZE = 1.2e-3; // step size
 

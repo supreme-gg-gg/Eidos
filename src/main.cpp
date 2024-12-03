@@ -1,4 +1,5 @@
 #include <iostream>
+#include "../include/demo.h"
 #include <Eigen/Dense>
 
 int main() {
@@ -9,5 +10,8 @@ int main() {
     mat(1, 1) = 4.0;
 
     std::cout << "Matrix:\n" << mat << std::endl;
+
+    demo();
+
     return 0;
 }
