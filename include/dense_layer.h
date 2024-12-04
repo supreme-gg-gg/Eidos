@@ -17,12 +17,12 @@
 class DenseLayer: public Layer {
     private: 
         Eigen::MatrixXf weights; ///< Weight matrix (W)
-        Eigen::MatrixXf bias; ///< Bias vector (b)
+        Eigen::VectorXf bias; ///< Bias vector (b)
         Eigen::MatrixXf input; ///< Input matrix (x)
         Eigen::MatrixXf output; ///< Output matrix (y)
 
         Eigen::MatrixXf grad_weights; ///< Gradient of the loss w.r.t. the weights
-        Eigen::MatrixXf grad_bias; ///< Gradient of the loss w.r.t. the bias
+        Eigen::VectorXf grad_bias; ///< Gradient of the loss w.r.t. the bias
 
         Activation* activation; ///< Activation function for the layer
     public:
@@ -63,7 +63,7 @@ class DenseLayer: public Layer {
          * 
          * @return The gradient of the loss with respect to the bias.
          */
-        Eigen::MatrixXf get_bias_gradient() const;
+        Eigen::VectorXf get_bias_gradient() const;
 };
 
 #endif //DENSE_LAYER_H
