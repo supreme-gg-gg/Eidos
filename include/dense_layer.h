@@ -2,31 +2,38 @@
 #define DENSE_LAYER_H
 
 #include "layer.h"
+#include "activations.h"
 #include <Eigen/Dense>
 
 /**
  * @class DenseLayer
- * @brief A class representing a dense (fully connected) layer in a neural network.
  * 
- * The DenseLayer class inherits from the Layer class and implements the forward and backward
- * passes for a dense layer. It uses the Eigen library for matrix operations.
+ * 此層為重重疊疊之結構，猶如山川重峦，層層疊起，
+ * 設計精巧，層層遞進，每一層皆重若千鈞。
+ * 
+ * 其內部運算，猶如群山之間，流轉無窮，權重與偏置交織，
+ * 轉換輸入，成就最終之輸出。
  */
 class DenseLayer: public Layer {
     private: 
         Eigen::MatrixXf weights; ///< Weight matrix (W)
         Eigen::MatrixXf bias; ///< Bias vector (b)
         Eigen::MatrixXf input; ///< Input matrix (x)
+        Eigen::MatrixXf output; ///< Output matrix (y)
 
         Eigen::MatrixXf grad_weights; ///< Gradient of the loss w.r.t. the weights
         Eigen::MatrixXf grad_bias; ///< Gradient of the loss w.r.t. the bias
+
+        Activation* activation; ///< Activation function for the layer
     public:
         /**
          * @brief Constructor for the DenseLayer class.
          * 
          * @param input_size The size of the input vector.
          * @param output_size The size of the output vector.
+         * @param activation The activation function to use in the layer.
          */
-        DenseLayer(int input_size, int output_size);
+        DenseLayer(int input_size, int output_size, Activation* activation);
 
         /**
          * @brief Performs the forward pass of the dense layer.

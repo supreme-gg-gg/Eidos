@@ -1,7 +1,8 @@
 #include "include/dense_layer.h"
 #include <iostream>
 
-DenseLayer::DenseLayer(int input_size, int output_size) {
+DenseLayer::DenseLayer(int input_size, int output_size, Activation* activation_func)
+    : activation(activation_func) {
     weights = Eigen::MatrixXf::Random(output_size, input_size);
     bias = Eigen::MatrixXf::Zero(output_size, 1);
 
@@ -10,12 +11,23 @@ DenseLayer::DenseLayer(int input_size, int output_size) {
 }
 
 Eigen::MatrixXf DenseLayer::forward(const Eigen::MatrixXf& input) {
+    if (input.rows() == 0 || input.cols() == 0) {
+        throw std::invalid_argument("Input matrix cannot be empty.");
+    }
+
     this->input = input;
-    return (weights * input).colwise() + bias;
+    output = (weights * input).colwise() + bias; // Linear transformation
+    return activation->forward(output); // Apply activation function
+
+    // TODO: Implement batch normalization
 }
 
 Eigen::MatrixXf DenseLayer::backward(const Eigen::MatrixXf& grad_output) {
-    // Calculate the gradient of the loss with respect to the input
+
+    // Backprop through activation
+    Eigen::MatrixXf grad_activation = activation->backward(grad_output);
+
+    // Gradient w.r.t. input
     Eigen::MatrixXf grad_input = weights.transpose() * grad_output;
 
     // Gradeitn w.r.t. weights and biases
