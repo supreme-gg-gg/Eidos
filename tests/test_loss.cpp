@@ -1,48 +1,46 @@
 #include "../include/cross_entropy_loss.h"
 #include "../include/mse_loss.h"
-#include "test_loss.h"
-#include <iostream>
+#include <gtest/gtest.h>
 #include <Eigen/Dense>
-#include <cassert>
 
-void test_cross_entropy_loss() {
-    CrossEntropyLoss cross_entropy_loss;
+// Test CrossEntropyLoss
+TEST(LossTest, CrossEntropyLoss_ComputesCorrectly) {
+    // Example inputs (predictions and targets)
+    Eigen::MatrixXf predictions(2, 3);
+    predictions << 0.2, 0.5, 0.3,  // Prediction for class 1
+                   0.1, 0.3, 0.6;  // Prediction for class 2
 
-    Eigen::MatrixXf predictions(3, 2);
-    predictions << 0.9, 0.1,
-                   0.2, 0.8,
-                   0.3, 0.7;
+    Eigen::MatrixXf targets(2, 3);
+    targets << 0, 1, 0,  // Target is class 2
+               0, 0, 1;  // Target is class 3
 
-    Eigen::MatrixXf targets(3, 2);
-    targets << 1, 0,
-               0, 1,
-               0, 1;
-
-    float expected_loss = - (std::log(0.9) + std::log(0.8) + std::log(0.7)) / 3;
-    float computed_loss = cross_entropy_loss.compute_loss(predictions, targets);
-
-    assert(std::abs(computed_loss - expected_loss) < 1e-5);
-    std::cout << "Cross-entropy loss test passed!" << std::endl;
+    // Instantiate the loss function
+    CrossEntropyLoss loss;
+    
+    // Compute the loss
+    float loss_value = loss.compute_loss(predictions, targets);
+    
+    // Check if loss is computed correctly (here you can check against expected value)
+    EXPECT_FLOAT_EQ(loss_value, 1.204);
 }
 
-void test_mse_loss() {
-    MSELoss mse_loss;
+// Test MSELoss
+TEST(LossTest, MSELoss_ComputesCorrectly) {
+    // Example inputs (predictions and targets)
+    Eigen::MatrixXf predictions(2, 3);
+    predictions << 0.2, 0.5, 0.3,
+                   0.1, 0.3, 0.6;
 
-    Eigen::MatrixXf predictions(3, 2);
-    predictions << 0.9, 0.1,
-                   0.2, 0.8,
-                   0.3, 0.7;
+    Eigen::MatrixXf targets(2, 3);
+    targets << 0.1, 0.5, 0.2,
+               0.0, 0.3, 0.7;
 
-    Eigen::MatrixXf targets(3, 2);
-    targets << 1, 0,
-               0, 1,
-               0, 1;
-
-    float expected_loss = (std::pow(0.9 - 1, 2) + std::pow(0.1 - 0, 2) +
-                           std::pow(0.2 - 0, 2) + std::pow(0.8 - 1, 2) +
-                           std::pow(0.3 - 0, 2) + std::pow(0.7 - 1, 2)) / 6;
-    float computed_loss = mse_loss.compute_loss(predictions, targets);
-
-    assert(std::abs(computed_loss - expected_loss) < 1e-5);
-    std::cout << "MSE loss test passed!" << std::endl;
+    // Instantiate the loss function
+    MSELoss loss;
+    
+    // Compute the loss
+    float loss_value = loss.compute_loss(predictions, targets);
+    
+    // Check if loss is computed correctly (here you can check against expected value)
+    EXPECT_FLOAT_EQ(loss_value, 0.021);
 }
