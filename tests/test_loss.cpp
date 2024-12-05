@@ -18,7 +18,7 @@ TEST(LossTest, CrossEntropyLoss_ComputesCorrectly) {
     CrossEntropyLoss loss;
     
     // Compute the loss
-    float loss_value = loss.compute_loss(predictions, targets);
+    float loss_value = loss.forward(predictions, targets);
     
     // Check if loss is computed correctly (here you can check against expected value)
     EXPECT_FLOAT_EQ(loss_value, 1.204);
@@ -39,7 +39,7 @@ TEST(LossTest, MSELoss_ComputesCorrectly) {
     MSELoss loss;
     
     // Compute the loss
-    float loss_value = loss.compute_loss(predictions, targets);
+    float loss_value = loss.forward(predictions, targets);
     
     // Check if loss is computed correctly (here you can check against expected value)
     EXPECT_FLOAT_EQ(loss_value, 0.021);

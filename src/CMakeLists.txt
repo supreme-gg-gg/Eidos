@@ -8,7 +8,10 @@ file(GLOB SOURCES "*.cpp")
 add_executable(main 
 main.cpp
 cross_entropy_loss.cpp
-mse_loss.cpp)
+mse_loss.cpp
+dense_layer.cpp
+optimizer.cpp
+)
 
 # Link Eigen3 to the main executable
 target_link_libraries(main PRIVATE Eigen3::Eigen)
