@@ -2,7 +2,7 @@
 #define DENSE_LAYER_H
 
 #include "layer.h"
-#include "activations.h"
+#include "optimizer.h"
 #include <Eigen/Dense>
 
 /**
@@ -15,7 +15,8 @@
  * 轉換輸入，成就最終之輸出。
  */
 class DenseLayer: public Layer {
-    private: 
+    private:
+        // activation function is not included in the layer!
         Eigen::MatrixXf weights; ///< Weight matrix (W)
         Eigen::VectorXf bias; ///< Bias vector (b)
         Eigen::MatrixXf input; ///< Input matrix (x)
@@ -24,16 +25,14 @@ class DenseLayer: public Layer {
         Eigen::MatrixXf grad_weights; ///< Gradient of the loss w.r.t. the weights
         Eigen::VectorXf grad_bias; ///< Gradient of the loss w.r.t. the bias
 
-        Activation* activation; ///< Activation function for the layer
     public:
         /**
          * @brief Constructor for the DenseLayer class.
          * 
          * @param input_size The size of the input vector.
          * @param output_size The size of the output vector.
-         * @param activation The activation function to use in the layer.
          */
-        DenseLayer(int input_size, int output_size, Activation* activation);
+        DenseLayer(int input_size, int output_size);
 
         /**
          * @brief Performs the forward pass of the dense layer.
@@ -64,6 +63,10 @@ class DenseLayer: public Layer {
          * @return The gradient of the loss with respect to the bias.
          */
         Eigen::VectorXf get_bias_gradient() const;
+
+        void update_weights(Optimizer& optimizer) {
+            optimizer.update(weights, grad_weights, &bias, &grad_bias);
+        }
 };
 
 #endif //DENSE_LAYER_H

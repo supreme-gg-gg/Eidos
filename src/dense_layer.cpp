@@ -1,8 +1,7 @@
 #include "../include/dense_layer.h"
 #include <iostream>
 
-DenseLayer::DenseLayer(int input_size, int output_size, Activation* activation_func)
-    : activation(activation_func) {
+DenseLayer::DenseLayer(int input_size, int output_size){
 
     // TODO: Xavier initialization
     weights = Eigen::MatrixXf::Random(output_size, input_size);
@@ -20,16 +19,12 @@ Eigen::MatrixXf DenseLayer::forward(const Eigen::MatrixXf& input) {
 
     this->input = input;
     // Broadcast bias to match the number of samples
-    output = (weights * input) + bias.replicate(1, input.cols()); // Linear transformation
-    return activation->forward(output); // Apply activation function
+    return (weights * input) + bias.replicate(1, input.cols()); // Linear transformation
 
     // TODO: Implement batch normalization
 }
 
 Eigen::MatrixXf DenseLayer::backward(const Eigen::MatrixXf& grad_output) {
-
-    // Backprop through activation
-    Eigen::MatrixXf grad_activation = activation->backward(grad_output);
 
     // Gradient w.r.t. input
     Eigen::MatrixXf grad_input = weights.transpose() * grad_output;
