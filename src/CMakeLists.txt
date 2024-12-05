@@ -4,8 +4,12 @@ find_package(Eigen3 REQUIRED)
 # Add all .cpp files in the src directory
 file(GLOB SOURCES "*.cpp")
 
-# Add the executable target, with all .cpp files in the src directory
-add_executable(main ${SOURCES})
+# add_executable(main ${SOURCES})
+add_executable(main 
+main.cpp
+cross_entropy_loss.cpp
+mse_loss.cpp
+demo.cpp)
 
 # Link Eigen3 to the main executable
 target_link_libraries(main PRIVATE Eigen3::Eigen)

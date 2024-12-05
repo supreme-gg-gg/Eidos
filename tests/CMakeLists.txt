@@ -1,9 +1,13 @@
+enable_testing()
+
 # Include the Google Test framework
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 # Test files
-set(TEST_FILES
-    test_loss.cpp
+# When you have more dependencies in src
+# you can just search them using GLOB too
+file(GLOB TEST_FILES
+    "test_*.cpp"
     ../src/cross_entropy_loss.cpp   # Add the .cpp file for CrossEntropyLoss
     ../src/mse_loss.cpp             # Add the .cpp file for MSELoss
 )
