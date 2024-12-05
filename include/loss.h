@@ -7,6 +7,9 @@ class Loss {
 public:
     virtual ~Loss() = default;
 
+    Eigen::MatrixXf predictions;
+    Eigen::MatrixXf targets;
+
     /**
      * @brief Computes the loss given the predicted and true values.
      * 
@@ -14,7 +17,7 @@ public:
      * @param targets The true values (y_true).
      * @return The computed loss (scalar).
      */
-    virtual float compute_loss(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) const = 0;
+    virtual float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) = 0;
     
     /**
      * @brief Computes the gradient of the loss with respect to the predictions.
@@ -23,7 +26,7 @@ public:
      * @param targets The true values (y_true).
      * @return The gradient of the loss with respect to predictions.
      */
-    virtual Eigen::MatrixXf compute_gradient(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) const = 0;
+    virtual Eigen::MatrixXf backward() const = 0;
 };  
 
 #endif // LOSS_H

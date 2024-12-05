@@ -29,7 +29,7 @@ public:
      * @param targets A matrix of target values (one hot encoded)
      * @return The computed cross-entropy loss.
      */
-    float compute_loss(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) const override;
+    float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override;
     
     /**
      * @brief Computes the gradient of the cross-entropy loss with respect to the predictions.
@@ -44,7 +44,7 @@ public:
      * @param targets A matrix of target values (one hot encoded).
      * @return The computed gradient of the cross-entropy loss.
      */
-    Eigen::MatrixXf compute_gradient(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) const override;
+    Eigen::MatrixXf backward() const override;
 };
 
 #endif // CROSS_ENTROPY_LOSS_H

@@ -6,8 +6,8 @@
 
 class MSELoss: public Loss {
 public:
-   float compute_loss(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) const override; 
-   Eigen::MatrixXf compute_gradient(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) const override;
+   float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override; 
+   Eigen::MatrixXf backward() const override;
 };
 
 #endif // MSE_LOSS_H
