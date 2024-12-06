@@ -10,6 +10,7 @@ file(GLOB TEST_FILES
     "test_*.cpp"
     ../src/cross_entropy_loss.cpp   # Add the .cpp file for CrossEntropyLoss
     ../src/mse_loss.cpp             # Add the .cpp file for MSELoss
+    ../src/dense_layer.cpp
 )
 
 # Add the test executable and link it with Google Test, and your project library (computer_vision_lib)
