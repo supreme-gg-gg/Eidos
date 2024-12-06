@@ -1,46 +1,37 @@
 #include "../include/dense_layer.h"
+#include "../include/activation_fns.h"
+#include "../include/model.h"
 #include "../include/optimizer.h"
+#include "../include/layer.h"
 #include "../include/mse_loss.h"
-#include <iostream>
 #include <Eigen/Dense>
+#include <iostream>
 
 int main() {
+    // Create a model
+    Model model;
+    
+    // Add layers to the model using simplified methods
+    model.add_dense_layer(10, 5);  // Dense layer (10 -> 5)
+    model.add_relu_layer();        // ReLU activation
+    model.add_dense_layer(5, 2);   // Dense layer (5 -> 2)
 
-    int num_epochs = 10; // Define the number of epochs
-    DenseLayer layer1(10, 5); // Example: 784 inputs to 128 outputs (hidden layer)
-    DenseLayer layer2(5, 2);  // Example: 128 inputs to 10 outputs (output layer)
+    Eigen::MatrixXf inputs = Eigen::MatrixXf::Random(10, 3);  // 3 samples
+    Eigen::MatrixXf targets = Eigen::MatrixXf::Random(2, 3); // 3 target outputs
 
-    MSELoss mse_loss;  // Mean Squared Error loss function
+    SGD optimizer(0.01);
+    MSELoss loss_fn;
 
-    Adam optimizer(0.001); // Adam optimizer
+    // Training loop
+    for (int epoch = 0; epoch < 100; ++epoch) {
+        Eigen::MatrixXf outputs = model.forward(inputs);
+        float loss = loss_fn.forward(outputs, targets);
+        Eigen::MatrixXf grad_loss = loss_fn.backward();
 
-    // Each column represents a sample, each row represents a feature 
-    Eigen::MatrixXf inputs(10, 3); // 3 samples with 784 features each
-    Eigen::MatrixXf targets(2, 3); // 3 samples with 10 targets each
+        model.backward(grad_loss);
+        model.optimize(optimizer);
 
-    // Initialize inputs and targets for demonstration purposes
-    inputs.setRandom();
-    targets.setRandom();
-
-    for (int epoch = 0; epoch < num_epochs; ++epoch) {
-        // Forward pass: Calculate outputs for both layers
-        Eigen::MatrixXf output1 = layer1.forward(inputs);
-        Eigen::MatrixXf output2 = layer2.forward(output1);
-
-        // Compute MSE loss (Mean Squared Error)
-        float loss = mse_loss.forward(output2, targets);
-
-        // Backward pass: Calculate gradients
-        Eigen::MatrixXf output2_grad = mse_loss.backward();
-        Eigen::MatrixXf output1_grad = layer2.backward(output2_grad);  // Backward pass for layer2
-        Eigen::MatrixXf input_grad = layer1.backward(output1_grad);  // Backward pass for layer1
-
-        // Update weights and biases using SGD optimizer
-        layer1.update_weights(optimizer);
-        layer2.update_weights(optimizer);
-
-        // Output loss for monitoring progress
-        std::cout << "Epoch " << epoch << ", Loss: " << loss << std::endl;
+        std::cout << "Epoch " << epoch << " completed. Loss: " << loss << std::endl;
     }
 
     return 0;

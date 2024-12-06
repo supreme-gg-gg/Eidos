@@ -1,6 +1,9 @@
 #include "../include/model.h"
 #include "../include/console.hpp"
 #include "../include/csvparser.h"
+#include "../include/layer.h"
+#include "../include/dense_layer.h"
+#include "../include/activation_fns.h"
 #include <fstream>
 #include <filesystem>
 #include <string>
@@ -241,3 +244,32 @@ int main() {
     return 0;
 }
 */
+
+void Model::add_dense_layer(int input_size, int output_size) {
+    layers.push_back(std::make_unique<DenseLayer>(input_size, output_size));
+}
+
+void Model::add_relu_layer() {
+    layers.push_back(std::make_unique<ReLU>());
+}
+
+Eigen::MatrixXf Model::forward(const Eigen::MatrixXf& input) {
+    Eigen::MatrixXf output = input;
+    for (auto& layer : layers) {
+        output = layer->forward(output);
+    }
+    return output;
+}
+
+void Model::backward(const Eigen::MatrixXf& grad_output) {
+    Eigen::MatrixXf grad = grad_output;
+    for (auto it = layers.rbegin(); it != layers.rend(); ++it) {
+        grad = (*it)->backward(grad);
+    }
+}
+
+void Model::optimize(Optimizer& optimizer) {
+    for (auto& layer : layers) {
+        optimizer.optimize(*layer);
+    }
+}

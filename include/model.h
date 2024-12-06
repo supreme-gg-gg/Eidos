@@ -5,6 +5,10 @@
 #include <map>
 #include <variant>
 #include <Eigen/Dense>
+#include <vector>
+#include <memory>
+#include "layer.h"
+#include "optimizer.h"
 
 const unsigned short IMAGE_CHANNEL_NUM = 3;
 const unsigned short IMAGE_XSIZE = 256;
@@ -41,4 +45,17 @@ private:
     std::vector<ImageSample> testingSamples;
 };
 
-#endif //MODEL_H
+class Model {
+private:
+    std::vector<std::unique_ptr<Layer>> layers;
+
+public:
+    void add_dense_layer(int input_size, int output_size);
+    void add_relu_layer();
+    
+    Eigen::MatrixXf forward(const Eigen::MatrixXf& input);
+    void backward(const Eigen::MatrixXf& grad_output);
+    void optimize(Optimizer& optimizer);
+};
+
+#endif // MODEL_H
