@@ -1,5 +1,5 @@
 #include "../include/utils.h"
-#include "../include/imageProcessor.h"
+#include "../include/image_processor.h"
 
 #include <Eigen/Dense>
 #include <filesystem>

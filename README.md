@@ -15,8 +15,21 @@ This is a project for educational purpose to implement CNN Image Classifier and 
 
 1. Clone the repo
 2. Create a build directory: `mkdir build`
-3. Navigate to `build/` and run: `cmake .. && make`# vision-from-scratch-cpp
+3. Navigate to `build/` and run: `cmake .. && make`
 
 ## Inspecting Sample
 
 Run `make` in `sample` to see how an implementation using MLPack, an existing C++ ML framework, would look like. This is just for reference and not part of the main project.
+
+## Running Tests
+
+To run the unit tests, follow these steps:
+
+1. Ensure you have built the project as described in the "How to Build" section.
+2. Navigate to the `build/` directory.
+3. Run the tests using the following command:
+   ```sh
+   make test
+   ```
+
+This project uses Google Test and ctest for unit testing.
