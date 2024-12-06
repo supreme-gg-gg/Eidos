@@ -12,16 +12,13 @@ void SGD::update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradien
         }
     }
 
-Adam::Adam(float lr, float b1, float b2, float eps, const Eigen::MatrixXf& initial_weights)
-: learning_rate(lr), beta1(b1), beta2(b2), epsilon(eps), t(0) {
-    m = Eigen::MatrixXf::Zero(initial_weights.rows(), initial_weights.cols());
-    v = Eigen::MatrixXf::Zero(initial_weights.rows(), initial_weights.cols());
-    m_bias = Eigen::VectorXf::Zero(initial_weights.rows());
-    v_bias = Eigen::VectorXf::Zero(initial_weights.rows());
-}
-
 void Adam::update(Eigen::MatrixXf& parameters, const Eigen::MatrixXf& gradients, Eigen::VectorXf* bias = nullptr, const Eigen::VectorXf* bias_gradients = nullptr) {
     t++; // Increment time step
+
+    Eigen::MatrixXf m = Eigen::MatrixXf::Zero(gradients.rows(), gradients.cols());
+    Eigen::MatrixXf v = Eigen::MatrixXf::Zero(gradients.rows(), gradients.cols());
+    Eigen::VectorXf m_bias = Eigen::VectorXf::Zero(bias_gradients->rows());
+    Eigen::VectorXf v_bias = Eigen::VectorXf::Zero(bias_gradients->rows());
 
     // Update moment estimates for parameters
     m = beta1 * m + (1 - beta1) * gradients; // mt = beta1 * mt-1 + (1 - beta1) * gt

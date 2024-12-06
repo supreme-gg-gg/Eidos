@@ -56,7 +56,8 @@ class Adam: public Optimizer {
     Eigen::VectorXf v_bias; // Second moment estimate for bias
     int t; // Time update
 
-    Adam(float lr, float b1, float b2, float eps, const Eigen::MatrixXf& initial_weights);
+    Adam(float lr, float beta1 = 0.9, float beta2 = 0.999, float epsilon = 1e-8)
+        : learning_rate(lr), beta1(beta1), beta2(beta2), epsilon(epsilon), t(0) {}
 
     void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
                 Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) override;

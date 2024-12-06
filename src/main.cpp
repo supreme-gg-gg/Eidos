@@ -12,7 +12,7 @@ int main() {
 
     MSELoss mse_loss;  // Mean Squared Error loss function
 
-    SGD optimizer(0.01); // Define SGD optimizer with learning rate of 0.01
+    Adam optimizer(0.001); // Adam optimizer
 
     // Each column represents a sample, each row represents a feature 
     Eigen::MatrixXf inputs(10, 3); // 3 samples with 784 features each
