@@ -2,6 +2,7 @@
 #define OPTIMIZER_H
 
 #include <Eigen/Dense>
+#include "layer.h"
 
 /**
  * @class Optimizer
@@ -12,6 +13,9 @@
  */
 class Optimizer {
     public:
+
+    virtual void optimize(Layer& layer) = 0; // Works directly on Layer objects.
+
     /**
      * @brief Pure virtual function to update weights and biases.
      * 
@@ -26,24 +30,31 @@ class Optimizer {
      */
     virtual void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
                         Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) = 0;
+
+    virtual ~Optimizer() = default;
 };
 
 
 class SGD: public Optimizer {
-    public:
+private: 
     float learning_rate;
 
+public:
+    
     /**
      * @brief Constructs a new SGD optimizer with a given learning rate.
      * 
      * @param learning_rate The learning rate of the optimizer.
      */
-    SGD(float learning_rate): learning_rate(learning_rate) {}
+    explicit SGD(float learning_rate): learning_rate(learning_rate) {}
 
     void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
                 Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) override;
+
+    void optimize(Layer& layer) override;
 };
 
+/*
 class Adam: public Optimizer {
     public:
     float learning_rate;
@@ -61,6 +72,9 @@ class Adam: public Optimizer {
 
     void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
                 Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) override;
+
+    void optimize(Layer& layer) override;
 };
+*/
 
 #endif // OPTIMIZER_H
