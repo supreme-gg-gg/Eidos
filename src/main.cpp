@@ -6,17 +6,17 @@
 
 int main() {
 
-    int num_epochs = 100; // Define the number of epochs
-    DenseLayer layer1(784, 128); // Example: 784 inputs to 128 outputs (hidden layer)
-    DenseLayer layer2(128, 10);  // Example: 128 inputs to 10 outputs (output layer)
+    int num_epochs = 10; // Define the number of epochs
+    DenseLayer layer1(10, 5); // Example: 784 inputs to 128 outputs (hidden layer)
+    DenseLayer layer2(5, 2);  // Example: 128 inputs to 10 outputs (output layer)
 
     MSELoss mse_loss;  // Mean Squared Error loss function
 
     SGD optimizer(0.01); // Define SGD optimizer with learning rate of 0.01
 
-    // Example data (one image and one target vector)
-    Eigen::MatrixXf inputs(3, 784);
-    Eigen::MatrixXf targets(3, 10);
+    // Each column represents a sample, each row represents a feature 
+    Eigen::MatrixXf inputs(10, 3); // 3 samples with 784 features each
+    Eigen::MatrixXf targets(2, 3); // 3 samples with 10 targets each
 
     // Initialize inputs and targets for demonstration purposes
     inputs.setRandom();

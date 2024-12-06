@@ -18,7 +18,7 @@ Eigen::MatrixXf DenseLayer::forward(const Eigen::MatrixXf& input) {
     }
 
     this->input = input;
-    // Broadcast bias to match the number of samples
+    // Broadcast bias to match the number of samples (columns)
     return (weights * input) + bias.replicate(1, input.cols()); // Linear transformation
 
     // TODO: Implement batch normalization
@@ -30,8 +30,8 @@ Eigen::MatrixXf DenseLayer::backward(const Eigen::MatrixXf& grad_output) {
     Eigen::MatrixXf grad_input = weights.transpose() * grad_output;
 
     // Gradeitn w.r.t. weights and biases
-    Eigen::MatrixXf grad_weights = grad_output * input.transpose();
-    Eigen::VectorXf grad_bias = grad_output.rowwise().sum();
+    grad_weights = grad_output * input.transpose();
+    grad_bias = grad_output.rowwise().sum();
 
     return grad_input;
 }
