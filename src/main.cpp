@@ -7,6 +7,9 @@
 #include <iostream>
 
 int main() {
+
+    // TODO: train on MNIST
+
     // Create a model
     Model model;
     
@@ -20,7 +23,7 @@ int main() {
     Eigen::MatrixXf targets = Eigen::MatrixXf::Random(1, 3);  // 3 target outputs for regression
 
     // Set optimizer and loss function
-    SGD optimizer(0.01);
+    Adam optimizer(0.01);
     MSELoss loss_fn;
     model.set_optimizer(optimizer);
 

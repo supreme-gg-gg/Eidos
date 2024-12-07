@@ -59,7 +59,7 @@ private:
 class Model {
 private:
     std::vector<std::unique_ptr<Layer>> layers; // Vector of unique pointers to layers
-    Optimizer* optimizer; // Unique pointer to optimizer
+    Optimizer* optimizer; // Pointer to the optimizer used for training the model
 
 public:
     /**
@@ -72,11 +72,7 @@ public:
     /**
      * @brief Sets the optimizer for the model.
      * 
-     * This function assigns an optimizer to the model, which will be used
-     * during the training process to update the model's parameters.
-     * 
-     * @param opt A pointer to an Optimizer object that will be used for
-     *            optimizing the model's parameters.
+     * @param opt Reference to the optimizer to be used.
      */
     void set_optimizer(Optimizer& opt);
     

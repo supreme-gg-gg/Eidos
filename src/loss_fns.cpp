@@ -14,6 +14,7 @@ Eigen::MatrixXf MSELoss::backward() const {
     return 2 * (predictions - targets) / predictions.rows();
 }
 
+// TODO: Fix cross entropy
 float CrossEntropyLoss::forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) {
     // Clip predictions to avoid log(0) for numerical stability
     Eigen::MatrixXf clipped_preds = predictions.cwiseMax(1e-7f).cwiseMin(1.0f - 1e-7f);
