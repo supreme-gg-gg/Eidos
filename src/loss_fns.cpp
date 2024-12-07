@@ -14,7 +14,7 @@ Eigen::MatrixXf MSELoss::backward() const {
     return 2 * (predictions - targets) / predictions.rows();
 }
 
-float CrossEntropyLoss::forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) {
+float CategoricalCrossEntropyLoss::forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) {
     // Clip predictions to avoid log(0) for numerical stability
     this->predictions = predictions;
     this->targets = targets;
@@ -23,7 +23,7 @@ float CrossEntropyLoss::forward(const Eigen::MatrixXf& predictions, const Eigen:
     return - (targets.array() * clipped_preds.array().log()).sum() / predictions.rows();  // Use predictions.rows() for consistency
 }
 
-Eigen::MatrixXf CrossEntropyLoss::backward() const {
+Eigen::MatrixXf CategoricalCrossEntropyLoss::backward() const {
     // Avoid divide by zero in log
     Eigen::MatrixXf safe_predictions = predictions.cwiseMax(1e-7f);  // Ensure clipping is applied to predictions
 

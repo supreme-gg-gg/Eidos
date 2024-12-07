@@ -14,7 +14,7 @@ TEST(LossTest, CrossEntropyLoss_ComputesCorrectly) {
                0, 0, 1;  // Target is class 3
 
     // Instantiate the loss function
-    CrossEntropyLoss loss;
+    CategoricalCrossEntropyLoss loss;
     
     // Compute the loss
     float loss_value = loss.forward(predictions, targets);

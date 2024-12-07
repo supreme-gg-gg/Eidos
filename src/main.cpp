@@ -16,18 +16,18 @@ int main() {
     // Add layers to the model
     model.Add(new DenseLayer(64, 32));
     model.Add(new ReLU());
-    model.Add(new DenseLayer(32, 16));  // Output layer with 1 neuron for binary classification
+    model.Add(new DenseLayer(32, 16));
     model.Add(new ReLU());
-    model.Add(new DenseLayer(16, 1));
-    model.Add(new Sigmoid());  // Sigmoid activation for binary classification
+    model.Add(new DenseLayer(16, 10));  // Output layer with 10 neurons for multiclass classification
+    model.Add(new Softmax());  // Softmax activation for multiclass classification
 
     // Provide input and target data
-    Eigen::MatrixXf inputs = Eigen::MatrixXf::Random(64, 5);  // 3 samples with 10 features each
-    Eigen::MatrixXf targets = Eigen::MatrixXf::Random(1, 5).unaryExpr([](float elem) { return elem > 0.5 ? 1.0f : 0.0f; });  // 3 binary target outputs
+    Eigen::MatrixXf inputs = Eigen::MatrixXf::Random(64, 5);  // 5 samples with 64 features each
+    Eigen::MatrixXf targets = Eigen::MatrixXf::Random(10, 5).unaryExpr([](float elem) { return elem > 0.5 ? 1.0f : 0.0f; });  // 5 samples with 10 classes each
 
     // Set optimizer and loss function
     SGD optimizer(0.01);
-    BinaryCrossEntropyLoss loss_fn;
+    CategoricalCrossEntropyLoss loss_fn;
     model.set_optimizer(optimizer);
 
     // Training loop

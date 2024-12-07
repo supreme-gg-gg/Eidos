@@ -35,14 +35,14 @@ public:
 };
 
 /**
- * @class CrossEntropyLoss
- * @brief A class that implements the cross-entropy loss function.
+ * @class CategoricalCrossEntropyLoss
+ * @brief A class that implements the categorical cross-entropy loss function.
  * 
  * This class inherits from the Loss base class and provides an implementation
- * of the cross-entropy loss function, which is commonly used in classification
- * tasks.
+ * of the categorical cross-entropy loss function, which is commonly used in 
+ * multiclass classification tasks.
  */
-class CrossEntropyLoss: public Loss {
+class CategoricalCrossEntropyLoss: public Loss {
 public:
 
     /**
@@ -77,6 +77,13 @@ public:
     Eigen::MatrixXf backward() const override;
 };
 
+/**
+ * @class BinaryCrossEntropyLoss
+ * @brief A class to compute the binary cross-entropy loss for binary classification tasks.
+ * 
+ * This class provides methods to perform the forward and backward passes for the binary cross-entropy loss.
+ * It inherits from the base class Loss.
+ */
 class BinaryCrossEntropyLoss: public Loss {
 public:
     // Forward pass: Calculate loss for binary classification
