@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include "../include/dense_layer.h"
-#include "../include/mse_loss.h"
+#include "../include/loss_fns.h"
 
 TEST(DenseLayerTest, ForwardPassCorrectShape) {
     DenseLayer layer(10, 5); // 10 input features, 5 outputs
@@ -26,9 +26,9 @@ TEST(DenseLayerTest, BackwardPassCorrectShapes) {
     // Verify gradient shapes
     ASSERT_EQ(grad_input.rows(), 10); // Same as input features
     ASSERT_EQ(grad_input.cols(), 3);  // Same as number of samples
-    ASSERT_EQ(layer.get_weights_gradient().rows(), 5); // Matches output features
-    ASSERT_EQ(layer.get_weights_gradient().cols(), 10); // Matches input features
-    ASSERT_EQ(layer.get_bias_gradient().size(), 5); // Matches output features
+    ASSERT_EQ(layer.get_grad_weights()->rows(), 5); // Matches output features
+    ASSERT_EQ(layer.get_grad_weights()->cols(), 10); // Matches input features
+    ASSERT_EQ(layer.get_grad_bias()->size(), 5); // Matches output features
 }
 
 TEST(MSELossTest, ForwardAndBackward) {

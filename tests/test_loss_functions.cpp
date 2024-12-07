@@ -1,5 +1,4 @@
-#include "../include/cross_entropy_loss.h"
-#include "../include/mse_loss.h"
+#include "../include/loss_fns.h"
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 
