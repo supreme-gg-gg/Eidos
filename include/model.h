@@ -107,6 +107,18 @@ public:
      */
     void optimize() const;
 
+    /**
+     * @brief Trains the model using the provided training data and labels.
+     * 
+     * @param training_data A matrix containing the training data.
+     * @param training_labels A matrix containing the training labels.
+     * @param epochs The number of epochs to train the model.
+     * @param batch_size The size of each batch for training.
+     * @param loss_function The loss function to be used during training.
+     * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
+     */
+    void Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, LossFunction& loss_function, Optimizer* optimizer=nullptr);
+
     ~Model() = default;
 };
 

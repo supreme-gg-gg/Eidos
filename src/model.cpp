@@ -274,3 +274,36 @@ void Model::optimize() const {
         optimizer->optimize(*layer);
     }
 }
+
+void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, LossFunction& loss_function, Optimizer* optimizer=nullptr) {
+    
+    // Optimizer can either be set in the model or passed as an argument
+    if (optimizer != nullptr) {
+        set_optimizer(*optimizer);
+    } else if (this->optimizer == nullptr) {
+        Console::log("No Optimizer provided. Training aborted.", Console::ERROR);
+        return;
+    }
+
+    // Split the data into batches
+    int num_batches = training_data.rows() / batch_size;
+    Eigen::MatrixXf inputs;
+    Eigen::MatrixXf targets;
+    for (int epoch = 0; epoch < epochs; ++epoch) {
+        for (int i = 0; i < num_batches; ++i) {
+            // Get the current batch
+            inputs = training_data.middleRows(i * batch_size, batch_size);
+            targets = training_labels.middleRows(i * batch_size, batch_size);
+            // Forward pass
+            Eigen::MatrixXf outputs = forward(inputs);
+            float loss = loss_function.forward(outputs, targets);
+            // Backward pass
+            Eigen::MatrixXf grad_loss = loss_function.backward();
+            backward(grad_loss);
+            // Optimize
+            optimize();
+            // Print loss
+            std::cout << "Epoch " << epoch << " Batch " << i << " completed. Loss: " << loss << std::endl;
+        }
+    }
+}
