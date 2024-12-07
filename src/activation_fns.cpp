@@ -21,29 +21,16 @@ Eigen::MatrixXf Sigmoid::backward(const Eigen::MatrixXf& grad_output) {
     return grad_output.array() * sigmoid_grad.array();
 }
 
-// TODO: Fix the softmax implementation
 Eigen::MatrixXf Softmax::forward(const Eigen::MatrixXf& logits) {
-    // Subtract the maximum value in each column for numerical stability
-    Eigen::VectorXf max_per_col = logits.colwise().maxCoeff(); // Column vector of column max values
-    
-    // Create a matrix of max values expanded to match logits
-    Eigen::MatrixXf max_matrix = max_per_col.transpose().replicate(logits.rows(), 1);
-    
-    // Subtract max values from each column
-    Eigen::MatrixXf shifted_logits = logits - max_matrix;
-    
-    // Compute exponentials
-    Eigen::MatrixXf exp_logits = shifted_logits.array().exp();
-    
-    // Compute column-wise sums
-    Eigen::VectorXf col_sums = exp_logits.colwise().sum();
-    
-    // Normalize by dividing each column by its sum
-    Eigen::MatrixXf probabilities = exp_logits.array().colwise() / col_sums.array();
-    
-    // Cache the output for backpropagation
-    cache_output = probabilities;
-    return probabilities;
+    // Compute the exponentials in a numerically stable way
+    Eigen::MatrixXf exp_logits = (logits.array().rowwise() - logits.colwise().maxCoeff().array()).exp();
+
+    // Normalize by the sum of exponentials in each row, adding epsilon to avoid division by zero
+    Eigen::VectorXf row_sums = exp_logits.colwise().sum();
+    float epsilon = 1e-10f;  // Small constant to avoid division by zero
+    cache_output = exp_logits.array().rowwise() / (row_sums.transpose().array() + epsilon);
+
+    return cache_output;
 }
 
 Eigen::MatrixXf Softmax::backward(const Eigen::MatrixXf& grad_output) {
@@ -54,7 +41,7 @@ Eigen::MatrixXf Softmax::backward(const Eigen::MatrixXf& grad_output) {
         Eigen::RowVectorXf y = cache_output.row(i);
 
         // Compute the Jacobian matrix for softmax (dy/dx)
-        Eigen::MatrixXf jacobian = y.transpose() * (Eigen::MatrixXf::Identity(y.size(), y.size()) - y);
+        Eigen::MatrixXf jacobian = Eigen::MatrixXf::Identity(y.size(), y.size()) - y.transpose() * y;
 
         // Apply chain rule to compute the gradient for the current sample
         grad.row(i) = grad_output.row(i) * jacobian;

@@ -7,7 +7,7 @@
 TEST(SigmoidTest, ForwardPass) {
     Sigmoid sigmoid;
 
-    Eigen::MatrixXf inputs(1, 5);
+    Eigen::MatrixXf inputs(5, 1);
     inputs << 0.1f, -0.5f, 2.0f, -1.0f, 3.0f;
 
     Eigen::MatrixXf outputs = sigmoid.forward(inputs);
@@ -21,10 +21,10 @@ TEST(SigmoidTest, ForwardPass) {
 TEST(BinaryCrossEntropyLossTest, LossForward) {
     BinaryCrossEntropyLoss loss_fn;
 
-    Eigen::MatrixXf predictions(1, 5);
+    Eigen::MatrixXf predictions(5, 1);
     predictions << 0.9f, 0.1f, 0.8f, 0.2f, 0.7f;  // Predicted values (sigmoid outputs)
 
-    Eigen::MatrixXf targets(1, 5);
+    Eigen::MatrixXf targets(5, 1);
     targets << 1.0f, 0.0f, 1.0f, 0.0f, 1.0f;  // Binary targets
 
     float loss = loss_fn.forward(predictions, targets);
@@ -37,18 +37,18 @@ TEST(BinaryCrossEntropyLossTest, LossForward) {
 TEST(BinaryCrossEntropyLossTest, LossBackward) {
     BinaryCrossEntropyLoss loss_fn;
 
-    Eigen::MatrixXf predictions(1, 5);
-    predictions << 0.9f, 0.1f, 0.8f, 0.2f, 0.7f;  // Predicted values
+    Eigen::MatrixXf predictions(5, 1);
+    predictions << 0.9f, 0.1f, 0.8f, 0.2f, 0.7f;  // Predicted values (sigmoid outputs)
 
-    Eigen::MatrixXf targets(1, 5);
-    targets << 1.0f, 0.0f, 1.0f, 0.0f, 1.0f;  // Actual binary targets
+    Eigen::MatrixXf targets(5, 1);
+    targets << 1.0f, 0.0f, 1.0f, 0.0f, 1.0f;  // Binary targets
 
     loss_fn.forward(predictions, targets);  // Compute the forward pass to set predictions
 
     Eigen::MatrixXf grad_loss = loss_fn.backward();
 
     // Ensure gradients have the correct shape (same as the predictions)
-    ASSERT_EQ(grad_loss.rows(), 1);
-    ASSERT_EQ(grad_loss.cols(), 5);
+    ASSERT_EQ(grad_loss.rows(), 5);
+    ASSERT_EQ(grad_loss.cols(), 1);
     ASSERT_FALSE(grad_loss.isZero());
 }
