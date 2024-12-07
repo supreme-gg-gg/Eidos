@@ -77,5 +77,14 @@ public:
     Eigen::MatrixXf backward() const override;
 };
 
+class BinaryCrossEntropyLoss: public Loss {
+public:
+    // Forward pass: Calculate loss for binary classification
+    float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override;
+
+    // Backward pass: Compute the gradient of the loss with respect to predictions
+    Eigen::MatrixXf backward() const override;
+};
+
 #endif // LOSS_FNS_H
 

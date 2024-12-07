@@ -1,5 +1,6 @@
 #include "../include/activation_fns.h"
 #include <Eigen/Dense>
+#include <iostream>
 
 Eigen::MatrixXf ReLU::forward(const Eigen::MatrixXf& input) {
     cache_output = (input.array() > 0).cast<float>();

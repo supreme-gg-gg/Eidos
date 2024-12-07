@@ -14,17 +14,20 @@ int main() {
     Model model;
     
     // Add layers to the model
-    model.Add(new DenseLayer(10, 5));
+    model.Add(new DenseLayer(64, 32));
     model.Add(new ReLU());
-    model.Add(new DenseLayer(5, 1));  // Output layer with 1 neuron for regression
+    model.Add(new DenseLayer(32, 16));  // Output layer with 1 neuron for binary classification
+    model.Add(new ReLU());
+    model.Add(new DenseLayer(16, 1));
+    model.Add(new Sigmoid());  // Sigmoid activation for binary classification
 
     // Provide input and target data
-    Eigen::MatrixXf inputs = Eigen::MatrixXf::Random(10, 3);  // 3 samples
-    Eigen::MatrixXf targets = Eigen::MatrixXf::Random(1, 3);  // 3 target outputs for regression
+    Eigen::MatrixXf inputs = Eigen::MatrixXf::Random(64, 5);  // 3 samples with 10 features each
+    Eigen::MatrixXf targets = Eigen::MatrixXf::Random(1, 5).unaryExpr([](float elem) { return elem > 0.5 ? 1.0f : 0.0f; });  // 3 binary target outputs
 
     // Set optimizer and loss function
-    Adam optimizer(0.01);
-    MSELoss loss_fn;
+    SGD optimizer(0.01);
+    BinaryCrossEntropyLoss loss_fn;
     model.set_optimizer(optimizer);
 
     // Training loop
