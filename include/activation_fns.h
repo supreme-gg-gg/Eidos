@@ -2,7 +2,6 @@
 #define ACTIVATION_FNS_H
 
 #include "activations.h"
-#include "layer.h"
 #include <Eigen/Dense>
 
 /**
@@ -15,19 +14,26 @@
  * \f]
  * It sets all negative values in the input to zero and keeps positive values unchanged.
  */
-class ReLU : public Layer {
-private:
-    Eigen::MatrixXf mask;
-
+class ReLU : public Activation {
 public:
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override {
-        mask = (input.array() > 0).cast<float>();
-        return input.cwiseMax(0); // ReLU activation
-    }
+    /**
+     * @brief Applies the forward pass of the activation function to the input matrix.
+     *
+     * @param input The input matrix of size (m x n) where m is the number of samples and n is the number of features.
+     * @return Eigen::MatrixXf The output matrix after applying the activation function.
+     */
+    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override {
-        return grad_output.cwiseProduct(mask); // Grad of ReLU
-    }
+    /**
+     * @brief Computes the gradient of the loss with respect to the input of the activation function.
+     *
+     * This function takes the gradient of the loss with respect to the output of the activation function
+     * and computes the gradient of the loss with respect to the input of the activation function.
+     *
+     * @param grad_output The gradient of the loss with respect to the output of the activation function.
+     * @return The gradient of the loss with respect to the input of the activation function.
+     */
+    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 };
 
 /**
@@ -50,10 +56,7 @@ class Sigmoid: public Activation {
      * @param input The input matrix to which the Sigmoid activation function will be applied.
      * @return Eigen::MatrixXf The resulting matrix after applying the Sigmoid activation function.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override {
-        cache_output = 1.0f / (1.0f + (-input.array()).exp());
-        return cache_output;
-    }
+    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
     /**
      * @brief Computes the gradient of the Sigmoid activation function.
@@ -65,13 +68,7 @@ class Sigmoid: public Activation {
      * @param grad_output The gradient of the loss with respect to the output of the Sigmoid function.
      * @return Eigen::MatrixXf The gradient of the loss with respect to the input of the Sigmoid function.
      */
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override {
-        Eigen::MatrixXf sigmoid_grad = cache_output.array() * (1.0f - cache_output.array());
-        return grad_output.array() * sigmoid_grad.array();
-    }
-
-    private:
-    Eigen::MatrixXf cache_output; // Cache the output of the Sigmoid function
+    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 };
 
 
@@ -92,12 +89,7 @@ class Softmax: public Activation {
      * @param input The input matrix to which the Softmax activation function will be applied.
      * @return Eigen::MatrixXf The resulting matrix after applying the Softmax activation function.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& logits) override {
-        Eigen::MatrixXf exp_logits = (logits.array() - logits.rowwise().maxCoeff().array()).exp(); // Subtract max for numerical stability
-        Eigen::MatrixXf probabilities = exp_logits.array().colwise() / exp_logits.rowwise().sum().array(); // Normalize by sum
-        cache_output = probabilities; // Cache the output for backpropagation
-        return probabilities;
-    }
+    Eigen::MatrixXf forward(const Eigen::MatrixXf& logits) override;
 
     /**
      * @brief Computes the gradient of the Softmax activation function.
@@ -109,18 +101,7 @@ class Softmax: public Activation {
      * @param grad_output The gradient of the loss with respect to the output of the Softmax function.
      * @return Eigen::MatrixXf The gradient of the loss with respect to the input of the Softmax function.
      */
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override {
-        Eigen::MatrixXf grad = cache_output;
-        for (int i = 0; i < grad.rows(); ++i) {
-            Eigen::MatrixXf jacobian = grad.row(i).transpose() * grad.row(i); // Jacobian
-            jacobian.diagonal() -= grad.row(i).transpose(); // subtract diagonal
-            grad.row(i) = grad_output.row(i) * jacobian; // chain rule
-        }
-        return grad;
-    }
-
-    private:
-    Eigen::MatrixXf cache_output; // Cache the output of the Softmax function
+    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 };
 
 #endif //ACTIVATION_FNS_H

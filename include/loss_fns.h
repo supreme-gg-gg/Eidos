@@ -1,8 +1,38 @@
-#ifndef CROSS_ENTROPY_LOSS_H
-#define CROSS_ENTROPY_LOSS_H
+#ifndef LOSS_FNS_H
+#define LOSS_FNS_H
 
 #include "loss.h"
 #include <Eigen/Dense>
+
+/**
+ * @class MSELoss
+ * @brief Mean Squared Error Loss function class.
+ * 
+ * This class implements the Mean Squared Error (MSE) loss function, which is commonly used 
+ * in regression tasks. It inherits from the base Loss class.
+ */
+class MSELoss: public Loss {
+public:
+    /**
+     * @brief Computes the forward pass of the MSE loss.
+     * 
+     * This function calculates the mean squared error between the predictions and the targets.
+     * 
+     * @param predictions A matrix of predicted values.
+     * @param targets A matrix of target values.
+     * @return The computed MSE loss as a float.
+     */
+    float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override; 
+
+    /**
+     * @brief Computes the backward pass of the MSE loss.
+     * 
+     * This function calculates the gradient of the loss with respect to the input predictions.
+     * 
+     * @return A matrix representing the gradient of the loss.
+     */
+    Eigen::MatrixXf backward() const override;
+};
 
 /**
  * @class CrossEntropyLoss
@@ -47,4 +77,5 @@ public:
     Eigen::MatrixXf backward() const override;
 };
 
-#endif // CROSS_ENTROPY_LOSS_H
+#endif // LOSS_FNS_H
+

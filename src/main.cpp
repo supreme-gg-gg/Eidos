@@ -1,9 +1,6 @@
-#include "../include/dense_layer.h"
-#include "../include/activation_fns.h"
 #include "../include/model.h"
 #include "../include/optimizer.h"
-#include "../include/layer.h"
-#include "../include/mse_loss.h"
+#include "../include/loss_fns.h"
 #include <Eigen/Dense>
 #include <iostream>
 
