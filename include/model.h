@@ -45,17 +45,73 @@ private:
     std::vector<ImageSample> testingSamples;
 };
 
+/**
+ * @class Model
+ * @brief Represents a neural network model consisting of multiple layers and an optimizer.
+ * 
+ * The Model class provides functionalities to add layers, set an optimizer, perform forward
+ * and backward passes, and optimize the model parameters. It is designed to be used in
+ * machine learning tasks where a neural network model is trained and evaluated.
+ * 
+ * @note This class uses Eigen library for matrix operations and assumes that the Layer and
+ * Optimizer classes are defined elsewhere in the codebase.
+ */
 class Model {
 private:
-    std::vector<std::unique_ptr<Layer>> layers;
+    std::vector<std::unique_ptr<Layer>> layers; // Vector of unique pointers to layers
+    Optimizer* optimizer; // Unique pointer to optimizer
 
 public:
-    void add_dense_layer(int input_size, int output_size);
-    void add_relu_layer();
+    /**
+     * @brief Adds a new layer to the model.
+     * 
+     * @param layer Pointer to the layer to be added.
+     */
+    void Add(Layer* layer); 
+
+    /**
+     * @brief Sets the optimizer for the model.
+     * 
+     * This function assigns an optimizer to the model, which will be used
+     * during the training process to update the model's parameters.
+     * 
+     * @param opt A pointer to an Optimizer object that will be used for
+     *            optimizing the model's parameters.
+     */
+    void set_optimizer(Optimizer& opt);
     
+    /**
+     * @brief Performs the forward pass of the model.
+     * 
+     * This function takes an input matrix and computes the forward pass
+     * through the model, returning the resulting matrix.
+     * 
+     * @param input The input matrix of size (n, m) where n is the number of samples
+     * and m is the number of features.
+     * @return Eigen::MatrixXf The output matrix after the forward pass.
+     */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input);
+
+    /**
+     * @brief Performs the backward pass of the model, computing the gradient of the loss with respect to the model's parameters.
+     * 
+     * This function takes the gradient of the loss with respect to the output of the model and computes the gradient of the loss
+     * with respect to the model's parameters. This is typically used in the training process to update the model's parameters.
+     * 
+     * @param grad_output The gradient of the loss with respect to the output of the model. This is a matrix of the same shape as the model's output.
+     */
     void backward(const Eigen::MatrixXf& grad_output);
-    void optimize(Optimizer& optimizer);
+
+    /**
+     * @brief Optimizes the model parameters.
+     * 
+     * This function performs optimization on the model parameters to improve 
+     * performance. The specific optimization algorithm and its details are 
+     * implementation-dependent.
+     */
+    void optimize() const;
+
+    ~Model() = default;
 };
 
 #endif // MODEL_H

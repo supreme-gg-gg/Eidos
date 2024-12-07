@@ -4,6 +4,7 @@
 #include "../include/layer.h"
 #include "../include/dense_layer.h"
 #include "../include/activation_fns.h"
+#include "../include/optimizer.h"
 #include <fstream>
 #include <filesystem>
 #include <string>
@@ -245,12 +246,12 @@ int main() {
 }
 */
 
-void Model::add_dense_layer(int input_size, int output_size) {
-    layers.push_back(std::make_unique<DenseLayer>(input_size, output_size));
+void Model::Add(Layer* layer) {
+    layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
 }
 
-void Model::add_relu_layer() {
-    layers.push_back(std::make_unique<ReLU>());
+void Model::set_optimizer(Optimizer& opt) {
+    optimizer = &opt;
 }
 
 Eigen::MatrixXf Model::forward(const Eigen::MatrixXf& input) {
@@ -268,8 +269,8 @@ void Model::backward(const Eigen::MatrixXf& grad_output) {
     }
 }
 
-void Model::optimize(Optimizer& optimizer) {
+void Model::optimize() const {
     for (auto& layer : layers) {
-        optimizer.optimize(*layer);
+        optimizer->optimize(*layer);
     }
 }

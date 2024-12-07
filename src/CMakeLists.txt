@@ -8,6 +8,3 @@ add_executable(main ${SOURCES})
 
 # Link Eigen3 to the main executable
 target_link_libraries(main PRIVATE Eigen3::Eigen)
-
-# Optionally, link other libraries (e.g., pthreads if needed)
-# target_link_libraries(main PRIVATE pthread)
