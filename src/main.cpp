@@ -8,38 +8,25 @@
 #include <iostream>
 
 int main() {
-
+    std::string csvPath;
+    std::cout << "Enter the path to the CSV file: ";
+    std::getline(std::cin, csvPath);
     GenericDataLoader loader;
     std::vector<Eigen::MatrixXf> features;
     std::vector<std::string> labels;
-    loader.load_data("../../data/iris.csv", features, labels);
-
-    std::map<std::string, int> label_to_index = {{"Iris-setosa", 0}, {"Iris-versicolor", 1}, {"Iris-virginica", 2}};
-    std::vector<Eigen::MatrixXf> one_hot_labels;
-
-    for (const auto& label : labels) {
-        Eigen::MatrixXf one_hot = Eigen::MatrixXf::Zero(1, 3);
-        one_hot(0, label_to_index[label]) = 1.0;
-        one_hot_labels.push_back(one_hot);
-    }
-
-    // Split the data into training and testing sets
+    loader.load_data(csvPath, features, labels);
+    
     std::vector<Eigen::MatrixXf> train_features, test_features;
+    std::vector<std::string> train_string_labels, test_string_labels;
     std::vector<Eigen::MatrixXf> train_labels, test_labels;
 
-    float train_ratio = 0.8;
-    int train_size = static_cast<int>(features.size() * train_ratio);
-
-    for (int i = 0; i < features.size(); ++i) {
-        if (i < train_size) {
-            train_features.push_back(features[i]);
-            train_labels.push_back(one_hot_labels[i]);
-        } else {
-            test_features.push_back(features[i]);
-            test_labels.push_back(one_hot_labels[i]);
-        }
-    }
-
+    loader.split_data(features, labels, train_features, train_string_labels, test_features, test_string_labels, 0.8);
+    
+    //std::map<std::string, int> label_to_index = {{"Iris-setosa", 0}, {"Iris-versicolor", 1}, {"Iris-virginica", 2}};
+    std::map<std::string, int> label_to_index = {{"0", 0}, {"1", 1}, {"2", 2}, {"3", 3}, {"4", 4}, {"5", 5}, {"6", 6}, {"7", 7}, {"8", 8}, {"9", 9}};
+    loader.convert_to_one_hot(train_string_labels, train_labels, label_to_index);
+    loader.convert_to_one_hot(test_string_labels, test_labels, label_to_index);
+    
     // Convert vectors to Eigen matrices for easier manipulation
     Eigen::MatrixXf inputs(train_features.size(), train_features[0].size());
     Eigen::MatrixXf targets(train_labels.size(), train_labels[0].size());
@@ -59,6 +46,7 @@ int main() {
     Eigen::MatrixXf test_targets(test_labels.size(), test_labels[0].size());
 
     for (int i = 0; i < test_features.size(); ++i) {
+        // Also normalize the input and target values
         test_inputs.row(i) = test_features[i];
         test_targets.row(i) = test_labels[i];
     }
@@ -76,22 +64,20 @@ int main() {
 
     // Create and set up the model
     Model model;
-    model.Add(new DenseLayer(4, 16));
+    model.Add(new DenseLayer(784, 16));
     model.Add(new Tanh());
-    model.Add(new DenseLayer(16, 32));
+    model.Add(new DenseLayer(16, 16));
     model.Add(new Tanh());
-    model.Add(new DenseLayer(32, 16));
+    model.Add(new DenseLayer(16, 16));
     model.Add(new Tanh());
-    model.Add(new DenseLayer(16, 8));
-    model.Add(new Tanh());
-    model.Add(new DenseLayer(8, 3));  // Output layer with 1 neuron for regression
+    model.Add(new DenseLayer(16, 10));   // Output layer with 1 neuron for regression
 
     // Set optimizer and loss function
-    Adam optimizer(0.001);
+    Adam optimizer(0.0005);
     CrossEntropyLoss loss_fn;
     
     // Training
-    model.Train(inputs, targets, 300, 32, loss_fn, &optimizer);
+    model.Train(inputs, targets, 200, 32, loss_fn, &optimizer);
 
     // Testing
     model.Test(test_inputs, test_targets, loss_fn);
