@@ -1,7 +1,7 @@
 #include "../include/dense_layer.h"
 
 DenseLayer::DenseLayer(int input_size, int output_size)
-    : weights(Eigen::MatrixXf::Random(input_size, output_size)), // input -> output
+    : weights(Eigen::MatrixXf::Random(input_size, output_size) * std::sqrt(2.0f / (input_size + output_size))),
       bias(Eigen::VectorXf::Zero(output_size)),
       grad_weights(Eigen::MatrixXf::Zero(input_size, output_size)),
       grad_bias(Eigen::VectorXf::Zero(output_size)) {}

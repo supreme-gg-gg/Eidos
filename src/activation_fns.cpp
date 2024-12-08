@@ -33,11 +33,10 @@ return grad_output.array() * sigmoid_grad.array();
 Eigen::MatrixXf Softmax::forward(const Eigen::MatrixXf& logits) {
     // Compute the exponentials in a numerically stable way
     Eigen::MatrixXf exp_logits = (logits.array().rowwise() - logits.colwise().maxCoeff().array()).exp();
+    Eigen::VectorXf row_sums = exp_logits.array().rowwise().sum();
 
-    // Normalize by the sum of exponentials in each row, adding epsilon to avoid division by zero
-    Eigen::VectorXf row_sums = exp_logits.colwise().sum();
     float epsilon = 1e-10f;  // Small constant to avoid division by zero
-    cache_output = exp_logits.array().rowwise() / (row_sums.transpose().array() + epsilon);
+    cache_output = exp_logits.array().colwise() / (row_sums.array() + epsilon);
 
     return cache_output;
 }

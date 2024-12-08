@@ -29,10 +29,7 @@ Eigen::MatrixXf CategoricalCrossEntropyLoss::backward() const {
     Eigen::MatrixXf safe_predictions = predictions.cwiseMax(1e-7f);  // Ensure clipping is applied to predictions
 
     // Compute gradient element-wise
-    Eigen::MatrixXf gradient = -targets.cwiseQuotient(safe_predictions);
-
-    // Normalize by batch size (N)
-    return gradient / predictions.rows();  // Consistent use of predictions.rows()
+    return -targets.cwiseQuotient(safe_predictions);
 }
 
 // Forward pass: Calculate loss for binary classification
@@ -52,10 +49,7 @@ Eigen::MatrixXf BinaryCrossEntropyLoss::backward() const {
     Eigen::MatrixXf safe_predictions = predictions.cwiseMax(1e-7f);
 
     // Compute gradient for binary cross entropy
-    Eigen::MatrixXf gradient = (safe_predictions - targets).cwiseQuotient(safe_predictions.cwiseProduct(Eigen::MatrixXf::Constant(safe_predictions.rows(), safe_predictions.cols(), 1.0f) - safe_predictions));
-
-    // Normalize by batch size (N)
-    return gradient / static_cast<float>(predictions.rows());
+    return (safe_predictions - targets).cwiseQuotient(safe_predictions.cwiseProduct(Eigen::MatrixXf::Constant(safe_predictions.rows(), safe_predictions.cols(), 1.0f) - safe_predictions));
 }
 
 float CrossEntropyLoss::forward(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) {
@@ -75,6 +69,5 @@ float CrossEntropyLoss::forward(const Eigen::MatrixXf& logits, const Eigen::Matr
 }
 
 Eigen::MatrixXf CrossEntropyLoss::backward() const {
-    Eigen::MatrixXf gradient = predictions - targets;
-    return gradient / predictions.rows();
+    return predictions - targets;
 }
