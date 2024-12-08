@@ -18,6 +18,15 @@ public:
      * @param labels A vector to store the corresponding labels.
      */
     void load_data(const std::string& filePath, std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) override;
+
+    void preprocess_data(std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) override;
+
+    void split_data(const std::vector<Eigen::MatrixXf>& features, 
+    const std::vector<std::string>& labels, 
+    std::vector<Eigen::MatrixXf>& train_features, 
+    std::vector<std::string>& train_labels, 
+    std::vector<Eigen::MatrixXf>& test_features, 
+    std::vector<std::string>& test_labels) override;
 };
 
 #endif // GENERIC_DATA_LOADER_H

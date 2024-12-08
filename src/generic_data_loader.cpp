@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cctype>
 
-void ImageLoader::load_data(const std::string& filePath, std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) {
+void GenericDataLoader::load_data(const std::string& filePath, std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) {
     CSVParser parser = CSVParser(',');
     std::vector<std::vector<std::string>> data = parser.parse(filePath);
     
@@ -48,6 +48,15 @@ void ImageLoader::load_data(const std::string& filePath, std::vector<Eigen::Matr
     }
 }
 
-void ImageLoader::preprocess_data(std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) {
+void GenericDataLoader::preprocess_data(std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) {
     // Implement preprocessing steps here
+}
+
+void GenericDataLoader::split_data(const std::vector<Eigen::MatrixXf>& features, 
+const std::vector<std::string>& labels, 
+std::vector<Eigen::MatrixXf>& train_features, 
+std::vector<std::string>& train_labels, 
+std::vector<Eigen::MatrixXf>& test_features, 
+std::vector<std::string>& test_labels) {
+    // Implement data splitting here
 }
