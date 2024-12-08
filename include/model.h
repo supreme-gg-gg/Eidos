@@ -129,6 +129,9 @@ public:
      */
     void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
 
+    void Serialize(std::string toFilePath);
+    void Deserialize(std::string fromFilePath);
+
     ~Model() = default;
 };
 
