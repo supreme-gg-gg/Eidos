@@ -305,6 +305,23 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
 void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function) {
     Eigen::MatrixXf outputs = forward(testing_data);
     float loss = loss_function.forward(outputs, testing_labels);
-    std::cout << "Test loss: " << loss << std::endl;
+    Softmax softmax;
+    outputs = softmax.forward(outputs);
+    int correct_predictions = 0;
+    for (int i = 0; i < outputs.rows(); ++i) {
+        // Implement argmax manually
+        Eigen::Index predicted_index;
+        outputs.row(i).maxCoeff(&predicted_index);
+        
+        Eigen::Index actual_index;
+        testing_labels.row(i).maxCoeff(&actual_index);
+        
+        // Compare if the predicted and actual labels match
+        if (predicted_index == actual_index) {
+            correct_predictions++;
+        }
+    }
+    float accuracy = static_cast<float>(correct_predictions) / outputs.rows();
+    std::cout << "Test Loss: " << loss << std::endl;
+    std::cout << "Test Accuracy: " << accuracy * 100 << "%" << std::endl;
 }
-
