@@ -11,6 +11,15 @@ Eigen::MatrixXf ReLU::backward(const Eigen::MatrixXf& grad_output) {
     return grad_output.cwiseProduct(cache_output); // Grad of ReLU
 }
 
+Eigen::MatrixXf LeakyReLU::forward(const Eigen::MatrixXf& input) {
+    cache_output = (input.array() > 0).cast<float>() + alpha * (input.array() <= 0).cast<float>();
+    return input.cwiseMax(0) + alpha * input.cwiseMin(0); // Leaky ReLU activation
+}
+
+Eigen::MatrixXf LeakyReLU::backward(const Eigen::MatrixXf& grad_output) {
+    return grad_output.cwiseProduct(cache_output); // Grad of Leaky ReLU
+}
+
 Eigen::MatrixXf Sigmoid::forward(const Eigen::MatrixXf& input) {
     cache_output = 1.0f / (1.0f + (-input.array()).exp());
     return cache_output;
@@ -18,7 +27,7 @@ Eigen::MatrixXf Sigmoid::forward(const Eigen::MatrixXf& input) {
 
 Eigen::MatrixXf Sigmoid::backward(const Eigen::MatrixXf& grad_output) {
     Eigen::MatrixXf sigmoid_grad = cache_output.array() * (1.0f - cache_output.array());
-    return grad_output.array() * sigmoid_grad.array();
+return grad_output.array() * sigmoid_grad.array();
 }
 
 Eigen::MatrixXf Softmax::forward(const Eigen::MatrixXf& logits) {
@@ -48,4 +57,13 @@ Eigen::MatrixXf Softmax::backward(const Eigen::MatrixXf& grad_output) {
     }
 
     return grad;
+}
+
+Eigen::Matrix Tanh::forward(const Eigen::Matrix& input) {
+    cache_output = input.array().tanh();
+    return cache_output;
+}
+
+Eigen::Matrix Tanh::backward(const Eigen::Matrix& grad_output) {
+    return grad_output.array() * (1 - cache_output.array().square());
 }
