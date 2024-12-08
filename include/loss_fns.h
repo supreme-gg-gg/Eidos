@@ -35,6 +35,32 @@ public:
 };
 
 /**
+ * @class CrossEntropyLoss
+ * @brief A class that implements the cross-entropy loss function with Softmax activation.
+ * 
+ * The CrossEntropyLoss class is derived from the Loss base class and provides
+ * methods to compute the forward and backward passes of the cross-entropy loss
+ * function, which is commonly used in classification tasks. This class takes in 
+ * the logits (raw output) from the model and the one-hot encoded target values.
+ * 
+ * @note You can manually use the Softmax activation function and the CategoricalCrossEntropyLoss
+ * separately, but this class combines them for convenience.
+ */
+class CrossEntropyLoss: public Loss {
+public:
+    /**
+     * @brief Computes the forward pass of the loss function.
+     * 
+     * @param logits The predicted values (logits) as a matrix.
+     * @param targets The ground truth values as a matrix.
+     * @return The computed loss as a float.
+     */
+    float forward(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) override;
+
+    Eigen::MatrixXf backward() const override;
+};
+
+/**
  * @class CategoricalCrossEntropyLoss
  * @brief A class that implements the categorical cross-entropy loss function.
  * 

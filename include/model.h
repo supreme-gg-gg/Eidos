@@ -9,6 +9,7 @@
 #include <memory>
 #include "layer.h"
 #include "optimizer.h"
+#include "loss.h"
 
 const unsigned short IMAGE_CHANNEL_NUM = 3;
 const unsigned short IMAGE_XSIZE = 256;
@@ -117,7 +118,16 @@ public:
      * @param loss_function The loss function to be used during training.
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
-    void Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, LossFunction& loss_function, Optimizer* optimizer=nullptr);
+    void Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer=nullptr);
+
+    /**
+     * @brief Tests the model using the provided testing data and labels.
+     * 
+     * @param testing_data A matrix containing the testing data.
+     * @param testing_labels A matrix containing the testing labels.
+     * @param loss_function The loss function to evaluate the model's performance.
+     */
+    void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
 
     ~Model() = default;
 };

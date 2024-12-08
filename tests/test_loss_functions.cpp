@@ -3,26 +3,54 @@
 #include <Eigen/Dense>
 
 // Test CrossEntropyLoss
-TEST(LossTest, CrossEntropyLoss_ComputesCorrectly) {
-    // Example inputs (predictions and targets)
-    Eigen::MatrixXf predictions(3, 2);
-    predictions << 0.2, 0.5,  // Prediction for class 1
-                   0.1, 0.3,  // Prediction for class 2
-                   0.4, 0.4;  // Prediction for class 3
+TEST(LossTest, CategoricalCrossEntropyLoss_ComputesCorrectly) {
 
-    Eigen::MatrixXf targets(3, 2);
-    targets << 0, 1,  // Target is class 2
-               1, 0,  // Target is class 1
-               0, 1;  // Target is class 2
-
-    // Instantiate the loss function
     CategoricalCrossEntropyLoss loss;
     
-    // Compute the loss
+    Eigen::MatrixXf predictions(2, 4);
+    predictions << 0.25, 0.25, 0.25, 0.25,
+                    0.01, 0.01, 0.01, 0.96;
+
+    Eigen::MatrixXf targets(2, 4);
+    targets << 0, 0, 0, 1,
+                0, 0, 0, 1;
+
+    // Compute the loss for the new test case
     float loss_value = loss.forward(predictions, targets);
+
+    // Check if loss is computed correctly for the new test case
+    EXPECT_NEAR(loss_value, 0.71355817782, 1e-6);
+}
+
+TEST(LossTest, CrossEntropyLoss_ComputesCorrectly) {
+
+    CrossEntropyLoss loss;
+
+    Eigen::MatrixXf logits(2, 4);
+    logits << 1.2, 0.9, 0.5, 0.1,
+              2.1, 1.5, 0.3, 0.7;
+
+    Eigen::MatrixXf targets(2, 4);
+    targets << 0, 0, 0, 1,
+               0, 0, 1, 0;
     
-    // Check if loss is computed correctly (here you can check against expected value)
-    EXPECT_FLOAT_EQ(loss_value, 1.497);
+    float loss_value = loss.forward(logits, targets);
+    EXPECT_NEAR(loss_value, 0.998563, 1e-6);
+}
+
+TEST(LossTest, CrossEntropyLoss_Backward) {
+    CrossEntropyLoss loss;
+    Eigen::MatrixXf logits(2, 4);
+    Eigen::MatrixXf targets(2, 4);
+    logits << 1.2, 0.9, 0.5, 0.1,
+              2.1, 1.5, 0.3, 0.7;
+    targets << 0, 0, 0, 1,
+               0, 0, 1, 0;
+
+    float computed_loss = loss.forward(logits, targets);
+    Eigen::MatrixXf grad = loss.backward();
+    ASSERT_EQ(grad.rows(), 2);
+    ASSERT_EQ(grad.cols(), 4);
 }
 
 // Test MSELoss

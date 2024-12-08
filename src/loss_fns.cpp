@@ -1,5 +1,6 @@
 #include "../include/loss_fns.h"
 #include <Eigen/Dense>
+#include <iostream>
 
 float MSELoss::forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) {
     // Mean squared error: 1/n * sum((y_pred - y_true)^2)
@@ -18,8 +19,8 @@ float CategoricalCrossEntropyLoss::forward(const Eigen::MatrixXf& predictions, c
     // Clip predictions to avoid log(0) for numerical stability
     this->predictions = predictions;
     this->targets = targets;
-    Eigen::MatrixXf clipped_preds = predictions.cwiseMax(1e-7f).cwiseMin(1.0f - 1e-7f);
-    // CrossEntropyLoss = - sum(targets * log(predictions)) (element-wise sum)
+    Eigen::MatrixXf clipped_preds = predictions.cwiseMax(1e-7f).cwiseMin(1.0f - 1e-7f); // Clip predictions, epsilon = 1e-7
+    // Cross-entropy loss: -1/n * sum(y_true * log(y_pred))
     return - (targets.array() * clipped_preds.array().log()).sum() / predictions.rows();  // Use predictions.rows() for consistency
 }
 
@@ -31,7 +32,7 @@ Eigen::MatrixXf CategoricalCrossEntropyLoss::backward() const {
     Eigen::MatrixXf gradient = -targets.cwiseQuotient(safe_predictions);
 
     // Normalize by batch size (N)
-    return gradient / static_cast<float>(predictions.rows());  // Consistent use of predictions.rows()
+    return gradient / predictions.rows();  // Consistent use of predictions.rows()
 }
 
 // Forward pass: Calculate loss for binary classification
@@ -55,4 +56,25 @@ Eigen::MatrixXf BinaryCrossEntropyLoss::backward() const {
 
     // Normalize by batch size (N)
     return gradient / static_cast<float>(predictions.rows());
+}
+
+float CrossEntropyLoss::forward(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) {
+    // Compute softmax
+    // Eigen::MatrixXf exp_logits = logits.array().exp();
+    Eigen::MatrixXf exp_logits = (logits.array().rowwise() - logits.colwise().maxCoeff().array()).exp();
+    Eigen::VectorXf row_sums = exp_logits.array().rowwise().sum();
+    float epsilon = 1e-10f;
+
+    this->predictions = exp_logits.array().colwise() / (row_sums.array() + epsilon);
+
+    this->targets = targets;
+
+    Eigen::MatrixXf clipped_preds = this->predictions.cwiseMax(1e-7f).cwiseMin(1.0f - 1e-7f);
+
+    return - (targets.array() * clipped_preds.array().log()).sum() / logits.rows();
+}
+
+Eigen::MatrixXf CrossEntropyLoss::backward() const {
+    Eigen::MatrixXf gradient = predictions - targets;
+    return gradient / predictions.rows();
 }
