@@ -1,6 +1,10 @@
 #include "../include/model.h"
 #include "../include/console.hpp"
 #include "../include/csvparser.h"
+#include "../include/layer.h"
+#include "../include/dense_layer.h"
+#include "../include/activation_fns.h"
+#include "../include/optimizer.h"
 #include <fstream>
 #include <filesystem>
 #include <string>
@@ -216,12 +220,6 @@ int CNN_Model::loadData(std::string dataLabelsPath, float ftrainToTestSplitRatio
     return 0;
 }
 
-int CNN_Model::Train() {
-    return 1;
-}
-int CNN_Model::Test() {
-    return 1;
-}
 int CNN_Model::serializeParameters(std::string toFilePath) {
     return 1;
 }
@@ -241,3 +239,72 @@ int main() {
     return 0;
 }
 */
+
+void Model::Add(Layer* layer) {
+    layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
+}
+
+void Model::set_optimizer(Optimizer& opt) {
+    optimizer = &opt;
+}
+
+Eigen::MatrixXf Model::forward(const Eigen::MatrixXf& input) {
+    Eigen::MatrixXf output = input;
+    for (auto& layer : layers) {
+        output = layer->forward(output);
+    }
+    return output;
+}
+
+void Model::backward(const Eigen::MatrixXf& grad_output) {
+    Eigen::MatrixXf grad = grad_output;
+    for (auto it = layers.rbegin(); it != layers.rend(); ++it) {
+        grad = (*it)->backward(grad);
+    }
+}
+
+void Model::optimize() const {
+    for (auto& layer : layers) {
+        optimizer->optimize(*layer);
+    }
+}
+
+void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer) {
+    
+    // Optimizer can either be set in the model or passed as an argument
+    if (optimizer != nullptr) {
+        set_optimizer(*optimizer);
+    } else if (this->optimizer == nullptr) {
+        Console::log("No Optimizer provided. Training aborted.", Console::ERROR);
+        return;
+    }
+
+    // Split the data into batches
+    int num_batches = training_data.rows() / batch_size;
+    Eigen::MatrixXf inputs;
+    Eigen::MatrixXf targets;
+    for (int epoch = 0; epoch < epochs; ++epoch) {
+        for (int i = 0; i < num_batches; ++i) {
+            // Get the current batch
+            inputs = training_data.middleRows(i * batch_size, batch_size);
+            targets = training_labels.middleRows(i * batch_size, batch_size);
+            // Forward pass
+            Eigen::MatrixXf outputs = forward(inputs);
+            float loss = loss_function.forward(outputs, targets);
+            // Backward pass
+            Eigen::MatrixXf grad_loss = loss_function.backward();
+            backward(grad_loss);
+            // Optimize
+            optimize();
+            // Print loss
+            std::cout << "Epoch " << epoch << " Batch " << i << " completed. Loss: " << loss << std::endl;
+        }
+    }
+}
+
+void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function) {
+    Eigen::MatrixXf outputs = forward(testing_data);
+    float loss = loss_function.forward(outputs, testing_labels);
+    std::cout << "Test loss: " << loss << std::endl;
+}
+

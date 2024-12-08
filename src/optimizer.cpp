@@ -1,49 +1,79 @@
 #include "../include/optimizer.h"
+#include "../include/layer.h"
+#include <cmath>
 #include <Eigen/Dense>
 
-void SGD::update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
-                Eigen::VectorXf* bias = nullptr, const Eigen::VectorXf* bias_gradients = nullptr) {
-        // Update weights
-        weights -= learning_rate * weight_gradients;
-
-        // Update bias, if it exists
-        if (bias != nullptr && bias_gradients != nullptr) {
-            *bias -= learning_rate * (*bias_gradients);
-        }
+void SGD::optimize(Layer& layer) {
+    if (layer.has_weights()) {
+        Eigen::MatrixXf* weights = layer.get_weights();
+        Eigen::MatrixXf* grad_weights = layer.get_grad_weights();
+        *weights -= learning_rate * (*grad_weights);
     }
-
-Adam::Adam(float lr, float b1, float b2, float eps, const Eigen::MatrixXf& initial_weights)
-: learning_rate(lr), beta1(b1), beta2(b2), epsilon(eps), t(0) {
-    m = Eigen::MatrixXf::Zero(initial_weights.rows(), initial_weights.cols());
-    v = Eigen::MatrixXf::Zero(initial_weights.rows(), initial_weights.cols());
-    m_bias = Eigen::VectorXf::Zero(initial_weights.rows());
-    v_bias = Eigen::VectorXf::Zero(initial_weights.rows());
+    if (layer.has_bias()) {
+        Eigen::VectorXf* bias = layer.get_bias();
+        Eigen::VectorXf* grad_bias = layer.get_grad_bias();
+        *bias -= learning_rate * (*grad_bias);
+    }
 }
 
-void Adam::update(Eigen::MatrixXf& parameters, const Eigen::MatrixXf& gradients, Eigen::VectorXf* bias = nullptr, const Eigen::VectorXf* bias_gradients = nullptr) {
-    t++; // Increment time step
+// Function to initialize moment estimates for a layer
+Adam::Moments Adam::initialize_moments(Layer& layer) {
+    Moments moment;
 
-    // Update moment estimates for parameters
-    m = beta1 * m + (1 - beta1) * gradients; // mt = beta1 * mt-1 + (1 - beta1) * gt
-    v = beta2 * v + (1 - beta2) * gradients.cwiseProduct(gradients); // vt = beta2 * vt-1 + (1 - beta2) * gt^2
+    // Initialize moment estimates for weights
+    Eigen::MatrixXf* grad_weights = layer.get_grad_weights();
+    moment.m_w = Eigen::MatrixXf::Zero(grad_weights->rows(), grad_weights->cols());
+    moment.v_w = Eigen::MatrixXf::Zero(grad_weights->rows(), grad_weights->cols());
 
-    // Bias correction of moments
-    Eigen::MatrixXf m_hat = m / (1 - std::pow(beta1, t)); // m_hat = mt / (1 - beta1^t)
-    Eigen::MatrixXf v_hat = v / (1 - std::pow(beta2, t)); // v_hat = vt / (1 - beta2^t)
+    // Initialize moment estimates for bias
+    if (layer.has_bias()) {
+        Eigen::VectorXf* grad_bias = layer.get_grad_bias();
+        moment.m_b = Eigen::VectorXf::Zero(grad_bias->rows());
+        moment.v_b = Eigen::VectorXf::Zero(grad_bias->rows());
+    }
 
-    // Update weights: w = w - alpha * m_hat / (sqrt(v_hat) + epsilon)
-    parameters -= learning_rate * m_hat.cwiseQuotient(v_hat.cwiseSqrt() + Eigen::MatrixXf::Constant(v.rows(), v.cols(), epsilon));
-    
-    // If there's a bias, handle its update separately
-    if (bias != nullptr && bias_gradients != nullptr) {
-        m_bias = beta1 * m_bias + (1 - beta1) * (*bias_gradients);
-        v_bias = beta2 * v_bias + (1 - beta2) * (*bias_gradients).cwiseProduct(*bias_gradients);
+    return moment;
+}
 
-        // Bias correction
-        Eigen::VectorXf m_hat_bias = m_bias / (1 - std::pow(beta1, t));
-        Eigen::VectorXf v_hat_bias = v_bias / (1 - std::pow(beta2, t));
+// Adam optimizer's optimization step
+void Adam::optimize(Layer& layer) {
+    t++;  // Increment time step
 
-        // Update bias: b = b - alpha * m_hat_bias / (sqrt(v_hat_bias) + epsilon)
-        *bias -= learning_rate * m_hat_bias.cwiseQuotient(v_hat_bias.cwiseSqrt() + Eigen::VectorXf::Constant(v_bias.rows(), v_bias.cols(), epsilon));
+    if (!layer.has_weights()) {
+        return;
+    }
+
+    // Initialize moments if not already done
+    if (moments.find(&layer) == moments.end()) {
+        moments[&layer] = initialize_moments(layer);
+    }
+
+    // Access the moments for this layer
+    Moments& moment = moments[&layer];
+
+    // Update weights
+    Eigen::MatrixXf* weights = layer.get_weights();
+    Eigen::MatrixXf* grad_weights = layer.get_grad_weights();
+
+    moment.m_w = beta1 * moment.m_w + (1 - beta1) * (*grad_weights);
+    moment.v_w = beta2 * moment.v_w + (1 - beta2) * grad_weights->cwiseProduct(*grad_weights);
+
+    Eigen::MatrixXf m_hat = moment.m_w / (1 - std::pow(beta1, t));
+    Eigen::MatrixXf v_hat = moment.v_w / (1 - std::pow(beta2, t));
+
+    *weights -= learning_rate * m_hat.cwiseQuotient(v_hat.cwiseSqrt() + Eigen::MatrixXf::Constant(v_hat.rows(), v_hat.cols(), epsilon));
+
+    // Update bias if exists
+    if (layer.has_bias()) {
+        Eigen::VectorXf* bias = layer.get_bias();
+        Eigen::VectorXf* grad_bias = layer.get_grad_bias();
+
+        moment.m_b = beta1 * moment.m_b + (1 - beta1) * (*grad_bias);
+        moment.v_b = beta2 * moment.v_b + (1 - beta2) * grad_bias->cwiseProduct(*grad_bias);
+
+        Eigen::VectorXf m_hat_bias = moment.m_b / (1 - std::pow(beta1, t));
+        Eigen::VectorXf v_hat_bias = moment.v_b / (1 - std::pow(beta2, t));
+
+        *bias -= learning_rate * m_hat_bias.cwiseQuotient(v_hat_bias.cwiseSqrt() + Eigen::VectorXf::Constant(v_hat_bias.rows(), v_hat_bias.cols(), epsilon));
     }
 }

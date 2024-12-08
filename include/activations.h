@@ -2,16 +2,27 @@
 #define ACTIVATIONS_H
 
 #include <Eigen/Dense>
+#include "layer.h"
 
 /**
  * @class Activation
- * @brief Abstract base class for activation functions.
- *
- * This class provides the interface for activation functions used in neural networks.
- * Derived classes must implement the `forward` and `backward` methods.
+ * @brief Abstract base class for activation functions in a neural network layer.
+ * 
+ * This class provides the interface for activation functions, which are used to introduce non-linearity
+ * into the network. It inherits from the Layer class and requires the implementation of forward and 
+ * backward methods.
+ * 
+ * @note This class cannot be instantiated directly. Instead, derive from this class and implement the 
+ * pure virtual methods.
+ * 
+ * @var Eigen::MatrixXf Activation::cache_output
+ * Cache for storing the output of the forward pass, which can be used during the backward pass.
  */
-class Activation {
-    public: 
+class Activation : public Layer {
+protected:
+    Eigen::MatrixXf cache_output;
+    
+public: 
     /**
      * @brief Perform the forward pass of the activation function.
      * @param input The input matrix.

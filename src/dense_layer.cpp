@@ -1,45 +1,30 @@
 #include "../include/dense_layer.h"
-#include <iostream>
 
-DenseLayer::DenseLayer(int input_size, int output_size){
-
-    // TODO: Xavier initialization
-    weights = Eigen::MatrixXf::Random(output_size, input_size);
-    bias = Eigen::VectorXf::Zero(output_size, 1);
-
-    // Used to store gradients
-    grad_weights = Eigen::MatrixXf::Zero(output_size, input_size);
-    grad_bias = Eigen::VectorXf::Zero(output_size, 1);
-}
+DenseLayer::DenseLayer(int input_size, int output_size)
+    : weights(Eigen::MatrixXf::Random(input_size, output_size)), // input -> output
+      bias(Eigen::VectorXf::Zero(output_size)),
+      grad_weights(Eigen::MatrixXf::Zero(input_size, output_size)),
+      grad_bias(Eigen::VectorXf::Zero(output_size)) {}
 
 Eigen::MatrixXf DenseLayer::forward(const Eigen::MatrixXf& input) {
-    if (input.rows() == 0 || input.cols() == 0) {
-        throw std::invalid_argument("Input matrix cannot be empty.");
-    }
-
     this->input = input;
-    // Broadcast bias to match the number of samples (columns)
-    return (weights * input) + bias.replicate(1, input.cols()); // Linear transformation
-
-    // TODO: Implement batch normalization
+    return (input * weights).rowwise() + bias.transpose(); // Row wise bias addition
 }
 
 Eigen::MatrixXf DenseLayer::backward(const Eigen::MatrixXf& grad_output) {
-
-    // Gradient w.r.t. input
-    Eigen::MatrixXf grad_input = weights.transpose() * grad_output;
-
-    // Gradeitn w.r.t. weights and biases
-    grad_weights = grad_output * input.transpose();
-    grad_bias = grad_output.rowwise().sum();
-
-    return grad_input;
+    grad_weights = input.transpose() * grad_output; // dL/dW = X^T * dL/dY
+    grad_bias = grad_output.colwise().sum(); // dL/db = sum(dL/dY)
+    return grad_output * weights.transpose(); // dL/dX = dL/dY * W^T
 }
 
-Eigen::MatrixXf DenseLayer::get_weights_gradient() const {
-    return grad_weights;
-}
+bool DenseLayer::has_weights() const { return true; }
 
-Eigen::VectorXf DenseLayer::get_bias_gradient() const {
-    return grad_bias;
-}
+bool DenseLayer::has_bias() const { return true; }
+
+Eigen::MatrixXf* DenseLayer::get_weights() { return &weights; }
+
+Eigen::MatrixXf* DenseLayer::get_grad_weights() { return &grad_weights; }
+
+Eigen::VectorXf* DenseLayer::get_bias() { return &bias; }
+
+Eigen::VectorXf* DenseLayer::get_grad_bias() { return &grad_bias; }

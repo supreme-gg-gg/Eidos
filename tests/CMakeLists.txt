@@ -8,9 +8,10 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 # you can just search them using GLOB too
 file(GLOB TEST_FILES
     "test_*.cpp"
-    ../src/cross_entropy_loss.cpp   # Add the .cpp file for CrossEntropyLoss
-    ../src/mse_loss.cpp             # Add the .cpp file for MSELoss
+    ../src/loss_fns.cpp
     ../src/dense_layer.cpp
+    ../src/activation_fns.cpp
+    ../src/optimizer.cpp
 )
 
 # Add the test executable and link it with Google Test, and your project library (computer_vision_lib)

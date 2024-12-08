@@ -2,6 +2,8 @@
 #define OPTIMIZER_H
 
 #include <Eigen/Dense>
+#include "layer.h"
+#include <unordered_map>
 
 /**
  * @class Optimizer
@@ -12,54 +14,58 @@
  */
 class Optimizer {
     public:
+
     /**
-     * @brief Pure virtual function to update weights and biases.
+     * @brief Pure virtual function to optimize a given layer.
      * 
-     * This function updates the weights and biases of a neural network layer
-     * based on the provided gradients. It must be implemented by any derived
-     * optimizer class.
+     * This function is intended to be overridden by derived classes to implement
+     * specific optimization algorithms. It works directly on Layer objects to 
+     * adjust their parameters based on the optimization strategy.
      * 
-     * @param weights Reference to the matrix of weights to be updated.
-     * @param weight_gradients Constant reference to the matrix of weight gradients.
-     * @param bias Pointer to the vector of biases to be updated. Can be nullptr if no biases are used.
-     * @param bias_gradients Constant pointer to the vector of bias gradients. Can be nullptr if no biases are used.
+     * @param layer Reference to the Layer object to be optimized.
      */
-    virtual void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
-                        Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) = 0;
+    virtual void optimize(Layer& layer) = 0; // Works directly on Layer objects.
+
+    virtual ~Optimizer() = default;
 };
 
 
 class SGD: public Optimizer {
-    public:
+private: 
     float learning_rate;
 
+public:
+    
     /**
      * @brief Constructs a new SGD optimizer with a given learning rate.
      * 
      * @param learning_rate The learning rate of the optimizer.
      */
-    SGD(float learning_rate): learning_rate(learning_rate) {}
+    explicit SGD(float learning_rate): learning_rate(learning_rate) {}
 
-    void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
-                Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) override;
+    void optimize(Layer& layer) override;
 };
 
-class Adam: public Optimizer {
-    public:
-    float learning_rate;
-    float beta1;
-    float beta2;
-    float epsilon;
-    Eigen::MatrixXf m; // First moment estimate
-    Eigen::MatrixXf v; // Second moment estimate
-    Eigen::VectorXf m_bias; // First moment estimate for bias
-    Eigen::VectorXf v_bias; // Second moment estimate for bias
-    int t; // Time update
+class Adam : public Optimizer {
+public:
+    Adam(float learning_rate, float beta1 = 0.9, float beta2 = 0.999, float epsilon = 1e-8)
+    : learning_rate(learning_rate), beta1(beta1), beta2(beta2), epsilon(epsilon), t(0) {};
 
-    Adam(float lr, float b1, float b2, float eps, const Eigen::MatrixXf& initial_weights);
+    void optimize(Layer& layer) override;
 
-    void update(Eigen::MatrixXf& weights, const Eigen::MatrixXf& weight_gradients,
-                Eigen::VectorXf* bias, const Eigen::VectorXf* bias_gradients) override;
+private:
+    struct Moments {
+        Eigen::MatrixXf m_w;   // First moment estimate for weights
+        Eigen::MatrixXf v_w;   // Second moment estimate for weights
+        Eigen::VectorXf m_b;   // First moment estimate for bias
+        Eigen::VectorXf v_b;   // Second moment estimate for bias
+    };
+
+    std::unordered_map<Layer*, Moments> moments;  // Maps layers to their moment estimates
+    float learning_rate, beta1, beta2, epsilon;
+    int t;  // Time step
+
+    Moments initialize_moments(Layer& layer);
 };
 
 #endif // OPTIMIZER_H
