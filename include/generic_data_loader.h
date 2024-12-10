@@ -22,6 +22,8 @@ public:
         std::vector<Eigen::MatrixXf>& features, 
         std::vector<std::string>& labels) override ;
 
+    void load_data(const std::string& filePath) override {};
+
     /**
      * @brief Splits the dataset into training and testing sets based on the given ratio.
      *
@@ -41,6 +43,8 @@ public:
         std::vector<std::string>& test_labels, 
         float trainToTestSplitRatio) override;
 
+    void split_data(float trainToTestSplitRatio) override {};
+
     /**
      * @brief Converts string labels to one-hot encoded labels.
      *
@@ -56,6 +60,8 @@ public:
     void convert_to_one_hot(const std::vector<std::string>& labels, 
         std::vector<Eigen::MatrixXf>& one_hot_labels, 
         const std::map<std::string, int>& mapping) override ;
+
+    void convert_to_one_hot(const std::map<std::string, int>& mapping) override {};
 };
 
 class BatchDataLoader : public DataLoader<Eigen::MatrixXf> {
