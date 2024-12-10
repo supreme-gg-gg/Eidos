@@ -61,7 +61,7 @@ public:
     virtual void convert_to_one_hot(const std::vector<std::string>& labels, 
         std::vector<Eigen::MatrixXf>& one_hot_labels, const std::map<std::string, int>& mapping) = 0;
 
-    virtual void convert_to_one_hot() = 0;
+    virtual void convert_to_one_hot(const std::map<std::string, int>& mapping) = 0;
 
     // These getters should be overridden in derived classes if supported
     virtual std::vector<T>& get_features() {

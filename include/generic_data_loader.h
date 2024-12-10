@@ -18,7 +18,9 @@ public:
      * @param features A vector to store the loaded feature matrices.
      * @param labels A vector to store the corresponding labels.
      */
-    void load_data(const std::string& filePath, std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) override ;
+    void load_data(const std::string& filePath, 
+        std::vector<Eigen::MatrixXf>& features, 
+        std::vector<std::string>& labels) override ;
 
     /**
      * @brief Splits the dataset into training and testing sets based on the given ratio.
@@ -31,7 +33,13 @@ public:
      * @param test_labels A vector of strings to store the testing labels.
      * @param trainToTestSplitRatio A float representing the ratio of training data to testing data.
      */
-    void split_data(const std::vector<Eigen::MatrixXf>& features, const std::vector<std::string>& labels, std::vector<Eigen::MatrixXf>& train_features, std::vector<std::string>& train_labels, std::vector<Eigen::MatrixXf>& test_features, std::vector<std::string>& test_labels, float trainToTestSplitRatio) override;
+    void split_data(const std::vector<Eigen::MatrixXf>& features, 
+        const std::vector<std::string>& labels, 
+        std::vector<Eigen::MatrixXf>& train_features, 
+        std::vector<std::string>& train_labels, 
+        std::vector<Eigen::MatrixXf>& test_features, 
+        std::vector<std::string>& test_labels, 
+        float trainToTestSplitRatio) override;
 
     /**
      * @brief Converts string labels to one-hot encoded labels.
@@ -45,7 +53,9 @@ public:
      * @param one_hot_labels A vector to store the resulting one-hot encoded labels.
      * @param mapping A key-value object used to map string labels to their corresponding one-hot encoded values.
      */
-    void convert_to_one_hot(const std::vector<std::string>& labels, std::vector<Eigen::MatrixXf>& one_hot_labels, const std::map<std::string, int>& mapping) override ;
+    void convert_to_one_hot(const std::vector<std::string>& labels, 
+        std::vector<Eigen::MatrixXf>& one_hot_labels, 
+        const std::map<std::string, int>& mapping) override ;
 };
 
 class BatchDataLoader : public DataLoader<Eigen::MatrixXf> {
@@ -54,13 +64,13 @@ public:
     BatchDataLoader(const std::string& file_path, int batch_size);
 
     // Loads data from a file (e.g., CSV)
-    void load_data(const std::string& file_path);
+    void load_data(const std::string& file_path) override;
 
     // Splits the dataset into training and testing sets based on the given ratio
-    void split_data(float trainToTestSplitRatio);
+    void split_data(float trainToTestSplitRatio) override;
 
     // Converts string labels to one-hot encoded labels
-    void convert_to_one_hot(const std::map<std::string, int>& mapping);
+    void convert_to_one_hot(const std::map<std::string, int>& mapping) override;
 
     // Returns the current batch of data as a tuple (features, labels)
     std::tuple<Eigen::MatrixXf, Eigen::MatrixXf> get_batch() const;

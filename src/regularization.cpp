@@ -16,20 +16,28 @@ Eigen::MatrixXf Dropout::backward(const Eigen::MatrixXf& grad_output) {
     return mask.array() * grad_output.array();
 }
 
+void Dropout::set_training(bool training_) {
+    training = training_;
+}
+
 BatchNorm::BatchNorm(int num_features, float epsilon)
     : epsilon(epsilon), num_features(num_features), training(true) {
     this->epsilon = epsilon;
     gamma = Eigen::MatrixXf::Ones(1, num_features);
-    beta = Eigen::MatrixXf::Zero(1, num_features);
+    beta = Eigen::VectorXf::Zero(1, num_features);
     running_mean = Eigen::MatrixXf::Zero(1, num_features);
     running_variance = Eigen::MatrixXf::Zero(1, num_features);
+}
+
+void BatchNorm::set_training(bool training_) {
+    training = training_;
 }
 
 Eigen::MatrixXf BatchNorm::forward(const Eigen::MatrixXf& input) {
     if (training) {
         // Compute mean and variance
         mean = input.rowwise().mean();
-        Eigen::MatrixXf centered = input.rowwise() - mean;  // Center the input (subtract mean)
+        Eigen::MatrixXf centered = input.colwise() - mean;  // Center the input (subtract mean)
         variance = (centered.array().square().rowwise().sum()) / input.rows();  // Compute variance
         // Update running mean and variance
         running_mean = 0.9 * running_mean + 0.1 * mean;
@@ -46,7 +54,7 @@ Eigen::MatrixXf BatchNorm::forward(const Eigen::MatrixXf& input) {
     // Normalize input
     normalized_input = centered_input.array() / (variance.array() + epsilon).sqrt();  // Normalize centered input
     // Scale and shift
-    return gamma.array() * normalized_input.array() + beta.array();  // Apply scaling (gamma) and shifting (beta)
+    return (gamma.array() * normalized_input.array()).rowwise() + beta.array().transpose();  // Apply scaling (gamma) and shifting (beta)
 }
 
 Eigen::MatrixXf BatchNorm::backward(const Eigen::MatrixXf& grad_output) {
@@ -62,8 +70,8 @@ Eigen::MatrixXf BatchNorm::backward(const Eigen::MatrixXf& grad_output) {
     // Compute gradient with respect to variance and mean
     Eigen::MatrixXf grad_variance = (grad_normalized.array() * centered_input.array()).rowwise().sum() * -0.5f *
                                     (variance.array() + epsilon).pow(-1.5);
-    Eigen::MatrixXf grad_mean = grad_normalized.rowwise().sum() * -1.0f / (variance.array() + epsilon).sqrt() +
-                                    grad_variance.array() * -2.0f * centered_input.array().rowwise().sum() / m;
+    Eigen::MatrixXf grad_mean = grad_normalized.rowwise().sum().array() * -1.0f / (variance.array() + epsilon).sqrt().transpose() +
+                                    grad_variance.array() * -2.0f * centered_input.array().rowwise().sum().array() / m;
 
     // Compute the gradient with respect to the original input
     Eigen::MatrixXf grad_input = grad_normalized.array() / (variance.array() + epsilon).sqrt() +
