@@ -24,8 +24,9 @@
  */
 class Model {
 private:
-    std::vector<std::unique_ptr<Layer>> layers; // Vector of unique pointers to layers
+    std::vector<std::unique_ptr<Layer> > layers; // Vector of unique pointers to layers
     Optimizer* optimizer; // Pointer to the optimizer used for training the model
+    bool training = true;
 
 public:
     /**
@@ -72,6 +73,32 @@ public:
      * implementation-dependent.
      */
     void optimize() const;
+
+    /**
+     * @brief Sets the model to training mode.
+     *
+     * This function configures the model to be in training mode, enabling
+     * features such as dropout and batch normalization that are typically
+     * used during the training process.
+     * 
+     * @note This function should be called before training the model if
+     * you are using manual training loop. Otherwise, the `Train` function
+     * will automatically set the model to training mode.
+     */
+    void set_train();
+
+    /**
+     * @brief Sets the model to inference mode.
+     *
+     * This function configures the model to operate in inference mode,
+     * which is typically used for making predictions or classifications
+     * based on the trained model.
+     * 
+     * @note This function should be called before using the model for
+     * inference if you are using manual inference loop. Otherwise, the
+     * `Test` function will automatically set the model to inference mode.
+     */
+    void set_inference();
 
     /**
      * @brief Trains the model using the provided training data and labels.

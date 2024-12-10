@@ -21,6 +21,20 @@ void Model::set_optimizer(Optimizer& opt) {
     optimizer = &opt;
 }
 
+void Model::set_train() {
+    training = true;
+    for (auto& layer : layers) {
+        layer->set_training(true);
+    }
+}
+
+void Model::set_inference() {
+    training = false;
+    for (auto& layer : layers) {
+        layer->set_training(false);
+    }
+}
+
 Eigen::MatrixXf Model::forward(const Eigen::MatrixXf& input) {
     Eigen::MatrixXf output = input;
     for (auto& layer : layers) {
@@ -43,7 +57,7 @@ void Model::optimize() const {
 }
 
 void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer) {
-    
+    set_train();
     // Optimizer can either be set in the model or passed as an argument
     if (optimizer != nullptr) {
         set_optimizer(*optimizer);
@@ -76,6 +90,7 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
 }
 
 void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function) {
+    set_inference();
     Eigen::MatrixXf outputs = forward(testing_data);
     float loss = loss_function.forward(outputs, testing_labels);
     Softmax softmax;

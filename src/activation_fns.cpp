@@ -3,12 +3,12 @@
 #include <iostream>
 
 Eigen::MatrixXf ReLU::forward(const Eigen::MatrixXf& input) {
-    cache_output = (input.array() > 0).cast<float>();
-    return input.cwiseMax(0); // ReLU activation
+    cache_output = (input.array() > 0).cast<float>(); // Cache the mask
+    return input.cwiseMax(0);                        // Apply ReLU activation
 }
 
 Eigen::MatrixXf ReLU::backward(const Eigen::MatrixXf& grad_output) {
-    return grad_output.cwiseProduct(cache_output); // Grad of ReLU
+    return grad_output.array() * cache_output.array(); // Apply the cached mask to gradients
 }
 
 Eigen::MatrixXf LeakyReLU::forward(const Eigen::MatrixXf& input) {
@@ -17,7 +17,7 @@ Eigen::MatrixXf LeakyReLU::forward(const Eigen::MatrixXf& input) {
 }
 
 Eigen::MatrixXf LeakyReLU::backward(const Eigen::MatrixXf& grad_output) {
-    return grad_output.cwiseProduct(cache_output); // Grad of Leaky ReLU
+    return grad_output.array() * cache_output.array(); // Apply the cached mask to gradients
 }
 
 Eigen::MatrixXf Sigmoid::forward(const Eigen::MatrixXf& input) {
