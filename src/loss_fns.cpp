@@ -55,7 +55,7 @@ Eigen::MatrixXf BinaryCrossEntropyLoss::backward() const {
 float CrossEntropyLoss::forward(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) {
     // Compute softmax
     // Eigen::MatrixXf exp_logits = logits.array().exp();
-    Eigen::MatrixXf exp_logits = (logits.array().rowwise() - logits.colwise().maxCoeff().array()).exp();
+    Eigen::MatrixXf exp_logits = (logits.array().colwise() - logits.rowwise().maxCoeff().array()).exp();
     Eigen::VectorXf row_sums = exp_logits.array().rowwise().sum();
     float epsilon = 1e-10f;
 
@@ -63,7 +63,7 @@ float CrossEntropyLoss::forward(const Eigen::MatrixXf& logits, const Eigen::Matr
 
     this->targets = targets;
 
-    Eigen::MatrixXf clipped_preds = this->predictions.cwiseMax(1e-7f).cwiseMin(1.0f - 1e-7f);
+    Eigen::MatrixXf clipped_preds = this->predictions.cwiseMax(1e-8f).cwiseMin(1.0f - 1e-8f);
 
     return - (targets.array() * clipped_preds.array().log()).sum() / logits.rows();
 }
