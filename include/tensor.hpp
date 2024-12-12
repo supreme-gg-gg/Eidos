@@ -111,6 +111,11 @@ public:
         return result;
     }
 
+    // Adding eleemnt
+    void push_back(const T& matrix) {
+        data_.push_back(matrix);
+    }
+
 private:
     std::vector<T> data_; // Vector of matrices
 };
