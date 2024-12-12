@@ -3,7 +3,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 
-void SGD::optimize(Layer& layer) {
+void SGD::optimize(Layer<Eigen::MatrixXf>& layer) {
     if (layer.has_weights()) {
         Eigen::MatrixXf* weights = layer.get_weights();
         Eigen::MatrixXf* grad_weights = layer.get_grad_weights();
@@ -16,27 +16,45 @@ void SGD::optimize(Layer& layer) {
     }
 }
 
-// Function to initialize moment estimates for a layer
-Adam::Moments Adam::initialize_moments(Layer& layer) {
-    Moments moment;
-
-    // Initialize moment estimates for weights
-    Eigen::MatrixXf* grad_weights = layer.get_grad_weights();
-    moment.m_w = Eigen::MatrixXf::Zero(grad_weights->rows(), grad_weights->cols());
-    moment.v_w = Eigen::MatrixXf::Zero(grad_weights->rows(), grad_weights->cols());
-
-    // Initialize moment estimates for bias
-    if (layer.has_bias()) {
-        Eigen::VectorXf* grad_bias = layer.get_grad_bias();
-        moment.m_b = Eigen::VectorXf::Zero(grad_bias->rows());
-        moment.v_b = Eigen::VectorXf::Zero(grad_bias->rows());
+void SGD::optimize(Layer<Tensor<Eigen::MatrixXf>>& layer) {
+    if (layer.has_weights()) {
+        Tensor<Eigen::MatrixXf>* weights = layer.get_weights();
+        Tensor<Eigen::MatrixXf>* grad_weights = layer.get_grad_weights();
+        *weights -= learning_rate * (*grad_weights);
     }
+    if (layer.has_bias()) {
+        Eigen::MatrixXf* bias = layer.get_bias();
+        Eigen::MatrixXf* grad_bias = layer.get_grad_bias();
+        *bias -= learning_rate * (*grad_bias);
+    }
+}
 
-    return moment;
+Adam::Moments Adam::initialize_moments(Layer<Eigen::MatrixXf>& layer) {
+    Moments m;
+    m.m_w = Eigen::MatrixXf::Zero(layer.get_weights()->rows(), layer.get_weights()->cols());
+    m.v_w = Eigen::MatrixXf::Zero(layer.get_weights()->rows(), layer.get_weights()->cols());
+    if (layer.has_bias()) {
+        m.m_b = Eigen::VectorXf::Zero(layer.get_bias()->size());
+        m.v_b = Eigen::VectorXf::Zero(layer.get_bias()->size());
+    }
+    return m;
+}
+
+// Overloaded helper function to initialize moments for Tensor layers
+Adam::Moments Adam::initialize_moments(Layer<Tensor<Eigen::MatrixXf>>& layer) {
+    Moments m;
+    m.m_w = Eigen::MatrixXf::Zero(layer.get_weights().get_depth(), layer.get_weights().get_depth());
+    m.v_w = Eigen::MatrixXf::Zero(layer.get_weights().get_depth(), layer.get_weights().get_depth());
+    if (layer.has_bias()) {
+        m.m_b = Eigen::VectorXf::Zero(layer.get_bias().size());
+        m.v_b = Eigen::VectorXf::Zero(layer.get_bias().size());
+    }
+    return m;
 }
 
 // Adam optimizer's optimization step
-void Adam::optimize(Layer& layer) {
+template <typename LayerType>
+void Adam::optimize_impl(LayerType& layer) {
     t++;  // Increment time step
 
     if (!layer.has_weights()) {
@@ -76,4 +94,12 @@ void Adam::optimize(Layer& layer) {
 
         *bias -= learning_rate * m_hat_bias.cwiseQuotient(v_hat_bias.cwiseSqrt() + Eigen::VectorXf::Constant(v_hat_bias.rows(), v_hat_bias.cols(), epsilon));
     }
+}
+
+void Adam::optimize(Layer<Eigen::MatrixXf>& layer) {
+    optimize_impl(layer);
+}
+
+void Adam::optimize(Layer<Tensor<Eigen::MatrixXf>>& layer) {
+    optimize_impl(layer);
 }

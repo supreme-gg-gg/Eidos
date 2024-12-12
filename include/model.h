@@ -10,6 +10,7 @@
 #include "layer.h"
 #include "optimizer.h"
 #include "loss.h"
+#include "tensor.h"
 
 /**
  * @class Model
@@ -24,7 +25,7 @@
  */
 class Model {
 private:
-    std::vector<std::unique_ptr<Layer> > layers; // Vector of unique pointers to layers
+    std::vector<std::unique_ptr<void*> > layers; // Vector of unique pointers to layers
     Optimizer* optimizer; // Pointer to the optimizer used for training the model
     bool training = true;
 
@@ -34,7 +35,8 @@ public:
      * 
      * @param layer Pointer to the layer to be added.
      */
-    void Add(Layer* layer); 
+    template <typename LayerType>
+    void Add(LayerType* layer);
 
     /**
      * @brief Sets the optimizer for the model.
@@ -53,7 +55,8 @@ public:
      * and m is the number of features.
      * @return Eigen::MatrixXf The output matrix after the forward pass.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input);
+    template <typename T = Eigen::MatrixXf>
+    T forward(const T& input);
 
     /**
      * @brief Performs the backward pass of the model, computing the gradient of the loss with respect to the model's parameters.
@@ -63,7 +66,8 @@ public:
      * 
      * @param grad_output The gradient of the loss with respect to the output of the model. This is a matrix of the same shape as the model's output.
      */
-    void backward(const Eigen::MatrixXf& grad_output);
+    template <typename T = Eigen::MatrixXf>
+    void backward(const T& grad_output);
 
     /**
      * @brief Optimizes the model parameters.
@@ -110,7 +114,10 @@ public:
      * @param loss_function The loss function to be used during training.
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
+
     void Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer=nullptr);
+
+    void Train(const Tensor<Eigen::MatrixXf>& training_data, const Tensor<Eigen::MatrixXf>& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer=nullptr);
 
     /**
      * @brief Tests the model using the provided testing data and labels.
@@ -120,6 +127,8 @@ public:
      * @param loss_function The loss function to evaluate the model's performance.
      */
     void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
+
+    void Test(const Tensor<Eigen::MatrixXf>& testing_data, const Tensor<Eigen::MatrixXf>& testing_labels, Loss& loss_function);
 
     void Serialize(std::string toFilePath);
     void Deserialize(std::string fromFilePath);
