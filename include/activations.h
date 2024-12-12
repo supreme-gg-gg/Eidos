@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include "layer.h"
+#include "tensor.hpp"
 
 /**
  * @class Activation
@@ -18,9 +19,10 @@
  * @var Eigen::MatrixXf Activation::cache_output
  * Cache for storing the output of the forward pass, which can be used during the backward pass.
  */
-class Activation : public Layer {
+class Activation : public Layer<Eigen::MatrixXf> {
 protected:
     Eigen::MatrixXf cache_output;
+    Tensor<Eigen::MatrixXf> cache_output_tensor;
     
 public: 
     /**
@@ -30,12 +32,24 @@ public:
      */
     virtual Eigen::MatrixXf forward(const Eigen::MatrixXf& input) = 0;
 
+    virtual Tensor<Eigen::MatrixXf> forward(const Tensor<Eigen::MatrixXf>& input)= 0;
+
     /**
      * @brief Perform the backward pass of the activation function.
      * @param grad_output The gradient of the loss with respect to the output of the activation function.
      * @return The gradient of the loss with respect to the input of the activation function.
      */
     virtual Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) = 0;
+
+    virtual Tensor<Eigen::MatrixXf> backward(const Tensor<Eigen::MatrixXf>& grad_output) = 0;
+
+    /**
+     * @brief Get the output of the forward pass.
+     * @return The output of the forward pass.
+     */
+    Eigen::MatrixXf cache() const {
+        return cache_output;
+    }
 };
 
 #endif //ACTIVATIONS_H

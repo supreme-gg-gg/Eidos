@@ -2,6 +2,7 @@
 #define ACTIVATION_FNS_H
 
 #include "activations.h"
+#include "tensor.hpp"
 #include <Eigen/Dense>
 
 /**
@@ -24,6 +25,8 @@ public:
      */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
+    Tensor<Eigen::MatrixXf> forward(const Tensor<Eigen::MatrixXf>& input) override;
+
     /**
      * @brief Computes the gradient of the loss with respect to the input of the activation function.
      *
@@ -34,6 +37,8 @@ public:
      * @return The gradient of the loss with respect to the input of the activation function.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+
+    Tensor<Eigen::MatrixXf> backward(const Tensor<Eigen::MatrixXf>& grad_output) override;
 };
 
 /**
@@ -64,6 +69,8 @@ public:
      */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
+    Tensor<Eigen::MatrixXf> forward(const Tensor<Eigen::MatrixXf>& input) override;
+
     /**
      * @brief Computes the backward pass (gradient) of the activation function
      * 
@@ -72,9 +79,10 @@ public:
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
+    Tensor <Eigen::MatrixXf> backward(const Tensor<Eigen::MatrixXf>& grad_output) override;
+
 private:
     float alpha;
-    Eigen::MatrixXf cache_output;
 };
 
 /**
@@ -99,6 +107,8 @@ class Sigmoid: public Activation {
      */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
+    Tensor<Eigen::MatrixXf> forward(const Tensor<Eigen::MatrixXf>& input) override;
+
     /**
      * @brief Computes the gradient of the Sigmoid activation function.
      * 
@@ -110,6 +120,8 @@ class Sigmoid: public Activation {
      * @return Eigen::MatrixXf The gradient of the loss with respect to the input of the Sigmoid function.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+
+    Tensor<Eigen::MatrixXf> backward(const Tensor<Eigen::MatrixXf>& grad_output) override;
 };
 
 
@@ -132,6 +144,8 @@ class Softmax: public Activation {
      */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& logits) override;
 
+    Tensor<Eigen::MatrixXf> forward(const Tensor<Eigen::MatrixXf>& logits) override;
+
     /**
      * @brief Computes the gradient of the Softmax activation function.
      * 
@@ -143,6 +157,8 @@ class Softmax: public Activation {
      * @return Eigen::MatrixXf The gradient of the loss with respect to the input of the Softmax function.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+
+    Tensor<Eigen::MatrixXf> backward(const Tensor<Eigen::MatrixXf>& grad_output) override;
 };
 
 /**
@@ -171,6 +187,8 @@ class Tanh: public Activation {
      */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
+    Tensor<Eigen::MatrixXf> forward(const Tensor<Eigen::MatrixXf>& input) override;
+
     /**
      * @brief Computes the gradient of the Tanh activation function.
      * 
@@ -183,8 +201,7 @@ class Tanh: public Activation {
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
-    private:
-    Eigen::MatrixXf cache_output;
+    Tensor<Eigen::MatrixXf> backward(const Tensor<Eigen::MatrixXf>& grad_output) override;
 };
 
 #endif //ACTIVATION_FNS_H
