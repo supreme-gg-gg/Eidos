@@ -71,6 +71,7 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
     Eigen::MatrixXf inputs;
     Eigen::MatrixXf targets;
     for (int epoch = 0; epoch < epochs; ++epoch) {
+        float total_loss = 0.0f;
         for (int i = 0; i < num_batches; ++i) {
             // Get the current batch
             inputs = training_data.middleRows(i * batch_size, batch_size);
@@ -78,14 +79,15 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
             // Forward pass
             Eigen::MatrixXf outputs = forward(inputs);
             float loss = loss_function.forward(outputs, targets);
+            total_loss += loss;
             // Backward pass
             Eigen::MatrixXf grad_loss = loss_function.backward();
             backward(grad_loss);
             // Optimize
             optimize();
-            // Print loss
-            std::cout << "Epoch " << epoch << " Batch " << i << " completed. Loss: " << loss << std::endl;
         }
+        float average_loss = total_loss / num_batches;
+        std::cout << "Epoch " << epoch << " completed. Average Loss: " << average_loss << std::endl;
     }
 }
 
