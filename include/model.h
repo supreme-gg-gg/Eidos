@@ -8,9 +8,11 @@
 #include <vector>
 #include <memory>
 #include "layer.h"
+#include "dense_layer.h"
+#include "conv_layer.h"
 #include "optimizer.h"
 #include "loss.h"
-#include "tensor.h"
+#include "tensor.hpp"
 
 /**
  * @class Model
@@ -25,8 +27,14 @@
  */
 class Model {
 private:
-    std::vector<std::unique_ptr<void*> > layers; // Vector of unique pointers to layers
-    Optimizer* optimizer; // Pointer to the optimizer used for training the model
+
+    using LayerVariant = std::variant<
+        std::unique_ptr<DenseLayer>,
+        std::unique_ptr<ConvLayer>
+    >;
+
+    std::vector<LayerVariant> layers; // Vector of unique pointers to layers
+    Optimizer* optimizer = nullptr; // Pointer to the optimizer used for training the model
     bool training = true;
 
 public:

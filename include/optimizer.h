@@ -3,7 +3,7 @@
 
 #include <Eigen/Dense>
 #include "layer.h"
-#include "tensor.h"
+#include "tensor.hpp"
 #include <unordered_map>
 
 /**
@@ -44,7 +44,7 @@ class Optimizer {
      * 
      * @param layer Reference to the Layer object to be optimized.
      */
-    virtual void optimizer(Layer<Tensor<Eigen::MatrixXf>>& layer) = 0;
+    virtual void optimize(Layer<Tensor<Eigen::MatrixXf>>& layer) = 0;
 
     virtual ~Optimizer() = default;
 };

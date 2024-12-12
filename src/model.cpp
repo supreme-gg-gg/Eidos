@@ -5,7 +5,7 @@
 #include "../include/dense_layer.h"
 #include "../include/activation_fns.h"
 #include "../include/optimizer.h"
-#include "../include/tensor.h"
+#include "../include/tensor.hpp"
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -14,7 +14,7 @@
 
 template <typename LayerType>
 void Model::Add(LayerType* layer) {
-    layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
+    layers.emplace_back(std::unique_ptr<LayerType>(layer)); // Wraps raw pointer in a unique_ptr
 }
 
 void Model::set_optimizer(Optimizer& opt) {
@@ -24,37 +24,46 @@ void Model::set_optimizer(Optimizer& opt) {
 void Model::set_train() {
     training = true;
     for (auto& layer : layers) {
-        layer->set_training(true);
+        // Using std::visit to call set_training() on the correct layer type
+        std::visit([](auto& l) { l->set_training(true); }, layer);
     }
 }
 
 void Model::set_inference() {
     training = false;
     for (auto& layer : layers) {
-        layer->set_training(false);
+        // Using std::visit to call set_training() on the correct layer type
+        std::visit([](auto& l) { l->set_training(false); }, layer);
     }
 }
 
-template <typename T = Eigen::MatrixXf>
+// @bug you cannot template this it will result in type error, think about it!
+template <typename T>
 T Model::forward(const T& input) {
     T output = input;
-    for (auto& layer : layers) {
-        output = layer->forward(output);
+    for (auto& layerVariant : layers) {
+        std::visit([&output](auto& layerPtr) {
+            output = layerPtr->forward(output);
+        }, layerVariant);
     }
     return output;
 }
 
-template <typename T = Eigen::MatrixXf>
+template <typename T>
 void Model::backward(const T& grad_output) {
     T grad = grad_output;
     for (auto it = layers.rbegin(); it != layers.rend(); ++it) {
-        grad = (*it)->backward(grad);
+        std::visit([&grad](auto& layerPtr) {
+            grad = layerPtr->backward(grad); // Call the backward method of the layer
+        }, *it); // Dereference to get the actual variant value
     }
 }
 
 void Model::optimize() const {
-    for (auto& layer : layers) {
-        optimizer->optimize(*layer);
+    for (auto& layerVariant : layers) {
+        std::visit([this](auto& layerPtr) {
+            optimizer->optimize(*layerPtr); // Call the optimizer on each layer
+        }, layerVariant); // Apply the lambda to the layerVariant
     }
 }
 

@@ -14,7 +14,7 @@
  * 
  * @note You should apply the Dropout layer after the activation layer in the model.
  */
-class Dropout: public Layer {
+class Dropout: public Layer<Eigen::MatrixXf> {
 private:
     float probability; ///< Probability of dropping a unit.
     Eigen::MatrixXf mask; ///< Mask matrix used to drop units.
@@ -63,7 +63,7 @@ public:
  * 
  * @note You should apply the BatchNorm layer before the activation layer in the model.
  */
-class BatchNorm: public Layer {
+class BatchNorm: public Layer<Eigen::MatrixXf> {
 private:
     Eigen::VectorXf mean, variance; ///< Mean and variance of the mini-batch.
     Eigen::VectorXf running_mean, running_variance; ///< Running mean and variance for inference.
