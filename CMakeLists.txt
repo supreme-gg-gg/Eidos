@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ComputerVisionCpp)
-
 # Enable C++17 or later
 set(CMAKE_CXX_STANDARD 17)
 
