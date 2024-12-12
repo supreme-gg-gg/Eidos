@@ -5,15 +5,15 @@
 #include "../include/dense_layer.h"
 #include "../include/activation_fns.h"
 #include "../include/optimizer.h"
-#include <fstream>
-#include <filesystem>
+#include "../include/tensor.h"
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <random>
 #include <Eigen/Dense>
 
-void Model::Add(Layer* layer) {
+template <typename LayerType>
+void Model::Add(LayerType* layer) {
     layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
 }
 
@@ -35,16 +35,18 @@ void Model::set_inference() {
     }
 }
 
-Eigen::MatrixXf Model::forward(const Eigen::MatrixXf& input) {
-    Eigen::MatrixXf output = input;
+template <typename T = Eigen::MatrixXf>
+T Model::forward(const T& input) {
+    T output = input;
     for (auto& layer : layers) {
         output = layer->forward(output);
     }
     return output;
 }
 
-void Model::backward(const Eigen::MatrixXf& grad_output) {
-    Eigen::MatrixXf grad = grad_output;
+template <typename T = Eigen::MatrixXf>
+void Model::backward(const T& grad_output) {
+    T grad = grad_output;
     for (auto it = layers.rbegin(); it != layers.rend(); ++it) {
         grad = (*it)->backward(grad);
     }
@@ -89,6 +91,10 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
     }
 }
 
+void Model::Train(const Tensor<Eigen::MatrixXf>& training_data, const Tensor<Eigen::MatrixXf>& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer) {
+    return;
+}
+
 void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function) {
     set_inference();
     Eigen::MatrixXf outputs = forward(testing_data);
@@ -112,4 +118,8 @@ void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& tes
     float accuracy = static_cast<float>(correct_predictions) / outputs.rows();
     std::cout << "Test Loss: " << loss << std::endl;
     std::cout << "Test Accuracy: " << accuracy * 100 << "%" << std::endl;
+}
+
+void Model::Test(const Tensor<Eigen::MatrixXf>& testing_data, const Tensor<Eigen::MatrixXf>& testing_labels, Loss& loss_function) {
+    return;
 }
