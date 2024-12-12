@@ -7,6 +7,7 @@
  * Abstract base class for a neural network layer
  * Derived class should implement forward and backward methods.
 */
+template <typename T>
 class Layer {
 public:
 
@@ -17,7 +18,7 @@ public:
      * @param input: The input matrix to the layer (typically activations from previous layer)
      * @return: The output matrix after applying the layer's transformation
     */
-    virtual Eigen::MatrixXf forward(const Eigen::MatrixXf& input) = 0;
+    virtual T forward(const T& input) = 0;
 
     /*
      * Pure virtual function to perform backward propagation on input.
@@ -26,15 +27,15 @@ public:
      * @param grad_output: The gradient of the loss function w.r.t. the output of this layer
      * @return: The gradient of the loss function w.r.t. the input of this layer
     */
-    virtual Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) = 0;
+    virtual T backward(const T& grad_output) = 0;
 
     // Virtual functions that can be overridden in derived classes but are not required
     // The most derived version of the function will be called
     virtual bool has_weights() const { return false; }
     virtual bool has_bias() const { return false; }
 
-    virtual Eigen::MatrixXf* get_weights() { return nullptr; }
-    virtual Eigen::MatrixXf* get_grad_weights() { return nullptr; }
+    virtual T* get_weights() { return nullptr; }
+    virtual T* get_grad_weights() { return nullptr; }
     virtual Eigen::VectorXf* get_bias() { return nullptr; }
     virtual Eigen::VectorXf* get_grad_bias() { return nullptr; }
 

@@ -14,7 +14,7 @@
  * 其內部運算，猶如群山之間，流轉無窮，權重與偏置交織，
  * 轉換輸入，成就最終之輸出。
  */
-class DenseLayer : public Layer {
+class DenseLayer : public Layer<Eigen::MatrixXf> {
 private:
     Eigen::MatrixXf weights;
     Eigen::VectorXf bias;
