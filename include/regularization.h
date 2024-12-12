@@ -55,78 +55,97 @@ public:
 
 /**
  * @class BatchNorm
- * @brief Placeholder for BatchNormalization class.
+ * @brief Implements the Batch Normalization technique.
  *
- * The BatchNormalization class will implement the batch normalization technique.
+ * The BatchNorm class normalizes the input to have zero mean and unit variance
+ * for each mini-batch, which helps accelerate training and improve the performance
+ * of deep neural networks.
+ * 
+ * @note You should apply the BatchNorm layer before the activation layer in the model.
  */
 class BatchNorm: public Layer {
 private:
-    Eigen::MatrixXf mean, variance;
-    Eigen::MatrixXf running_mean, running_variance;
-    Eigen::MatrixXf gamma;
-    Eigen::VectorXf beta;
-    bool training;
-    float epsilon;
-    int num_features;
-    std::default_random_engine generator;
+    Eigen::VectorXf mean, variance; ///< Mean and variance of the mini-batch.
+    Eigen::VectorXf running_mean, running_variance; ///< Running mean and variance for inference.
+    Eigen::MatrixXf gamma; ///< Scale parameter.
+    Eigen::VectorXf beta; ///< Shift parameter.
+    bool training; ///< Flag to indicate if the layer is in training mode.
+    float epsilon; ///< Small constant to avoid division by zero.
+    int num_features; ///< Number of features in the input.
+    std::default_random_engine generator; ///< Random number generator.
 
-    Eigen::MatrixXf normalized_input;
-    Eigen::MatrixXf centered_input;
-    Eigen::MatrixXf grad_gamma; // gamma acts like weights
-    Eigen::VectorXf grad_beta; // beta acts like bias
+    Eigen::MatrixXf normalized_input; ///< Normalized input matrix.
+    Eigen::MatrixXf centered_input; ///< Centered input matrix.
+    Eigen::MatrixXf grad_gamma; ///< Gradient of the scale parameter.
+    Eigen::VectorXf grad_beta; ///< Gradient of the shift parameter.
 
 public:
+    /**
+     * @brief Constructor for BatchNorm layer.
+     * @param num_features Number of features in the input.
+     * @param epsilon Small constant to avoid division by zero (default is 1e-5).
+     */
     explicit BatchNorm(int num_features, float epsilon=1e-5);
 
     /**
-     * @brief Performs the forward pass of the regularization layer.
-     * 
-     * This function takes an input matrix and applies the regularization
-     * operation, returning the result as a new matrix.
-     * 
-     * @param input The input matrix to be regularized.
-     * @return Eigen::MatrixXf The regularized output matrix.
+     * @brief Forward pass of the BatchNorm layer.
+     * @param input Input matrix.
+     * @return Output matrix after applying batch normalization.
      */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
     /**
-     * @brief Performs the backward pass for the regularization layer.
-     *
-     * This function computes the gradient of the loss with respect to the input
-     * of the regularization layer, given the gradient of the loss with respect
-     * to the output of the regularization layer.
-     *
-     * @param grad_output The gradient of the loss with respect to the output
-     *                    of the regularization layer.
-     * @return The gradient of the loss with respect to the input of the
-     *         regularization layer.
+     * @brief Backward pass of the BatchNorm layer.
+     * @param grad_output Gradient of the loss with respect to the output.
+     * @return Gradient of the loss with respect to the input.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
     /**
-     * @brief Sets the training mode for the regularization.
-     * 
-     * This function enables or disables the training mode for the regularization
-     * process. When training mode is enabled, certain behaviors or parameters
-     * specific to training may be activated.
-     * 
-     * @param training_ A boolean value indicating whether to enable (true) or 
-     * disable (false) training mode.
+     * @brief Set the training mode for the BatchNorm layer.
+     * @param training_ Boolean flag to set training mode.
      */
     void set_training(bool training_) override;
 
+    /**
+     * @brief Check if the layer has weights.
+     * @return True if the layer has weights, false otherwise.
+     */
     bool has_weights() const { return true; }
 
+    /**
+     * @brief Check if the layer has bias.
+     * @return True if the layer has bias, false otherwise.
+     */
     bool has_bias() const { return true; }
 
+    /**
+     * @brief Get the weights of the layer.
+     * @return Pointer to the weights matrix.
+     */
     Eigen::MatrixXf* get_weights() { return &gamma; }
 
+    /**
+     * @brief Get the gradient of the weights.
+     * @return Pointer to the gradient of the weights matrix.
+     */
     Eigen::MatrixXf* get_grad_weights() { return &grad_gamma; }
 
+    /**
+     * @brief Get the bias of the layer.
+     * @return Pointer to the bias vector.
+     */
     Eigen::VectorXf* get_bias() { return &beta; }
 
+    /**
+     * @brief Get the gradient of the bias.
+     * @return Pointer to the gradient of the bias vector.
+     */
     Eigen::VectorXf* get_grad_bias() { return &grad_beta; }
 
+    /**
+     * @brief Destructor for BatchNorm layer.
+     */
     ~BatchNorm() = default;
 };
 
