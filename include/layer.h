@@ -33,10 +33,10 @@ public:
     virtual bool has_weights() const { return false; }
     virtual bool has_bias() const { return false; }
 
-    virtual Eigen::MatrixXf* get_weights() { return nullptr; }
-    virtual Eigen::MatrixXf* get_grad_weights() { return nullptr; }
-    virtual Eigen::VectorXf* get_bias() { return nullptr; }
-    virtual Eigen::VectorXf* get_grad_bias() { return nullptr; }
+    virtual std::vector<Eigen::MatrixXf*> get_weights() { return {}; }
+    virtual std::vector<Eigen::MatrixXf*> get_grad_weights() { return {}; }
+    virtual std::vector<Eigen::VectorXf*> get_bias() { return {}; }
+    virtual std::vector<Eigen::VectorXf*> get_grad_bias() { return {}; }
 
     // Should be overridden if the layer has different behavior during training and inference
     virtual void set_training(bool training) {}
