@@ -7,14 +7,16 @@
 
 class RNNLayer : public Layer {
 private:
-    Eigen::MatrixXf W_h, U_h, W_o;  // Weight matrices
-    Eigen::VectorXf b_h, b_o;      // Bias vectors
-    Eigen::MatrixXf hidden_state;  // Current hidden state
-    Eigen::MatrixXf grad_W_h, grad_U_h, grad_W_o;  // Gradient of weights
-    Eigen::VectorXf grad_b_h, grad_b_o;            // Gradient of biases
-    Activation* activation;        // Activation function
+    // Store weights and biases in vectors for flexibility
+    std::vector<Eigen::MatrixXf> weights;        // Weight matrices (W_h, U_h, W_o)
+    std::vector<Eigen::VectorXf> biases;         // Bias vectors (b_h, b_o)
+    std::vector<Eigen::MatrixXf> grad_weights;   // Gradients of weights
+    std::vector<Eigen::VectorXf> grad_biases;    // Gradients of biases
 
+    Eigen::MatrixXf hidden_state;  // Current hidden state
+    Activation* activation;        // Activation function
     bool output_sequence;
+    Eigen::MatrixXf input_sequence;
 
 public:
     RNNLayer(int input_size, int hidden_size, Activation* activation, bool output_sequence = false);
@@ -25,14 +27,15 @@ public:
     // Backward pass for the RNN layer
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
-    bool has_weights() const override;
-    bool has_bias() const override;
+    bool has_weights() const;
+    bool has_bias() const;
 
-    Eigen::MatrixXf* get_weights() override;
-    Eigen::MatrixXf* get_grad_weights() override;
-
-    Eigen::VectorXf* get_bias() override;
-    Eigen::VectorXf* get_grad_bias() override;
-
+    std::vector<Eigen::MatrixXf*> get_weights();
+    std::vector<Eigen::MatrixXf*> get_grad_weights();
+    std::vector<Eigen::VectorXf*> get_bias();
+    std::vector<Eigen::VectorXf*> get_grad_bias();
+    
     ~RNNLayer() = default;
 };
+
+#endif //RNN_LAYER_H
