@@ -1,8 +1,8 @@
-# Computer Vision from Scratch in C++
+# Deep Learning Library from Scratch in C++!
 
 ## Description
 
-This is a project for educational purpose to implement CNN Image Classifier and TinyYOLO object detectio model from scratch using only Eigen for parallelized linear algebra in pure C++. The goal is to understand the underlying concepts of these models and how they work.
+This is a project for educational purpose to implement MLP, CNN, RNN and variants and helper functions (e.g. data loader) from scratch using only Eigen for parallelized linear algebra in pure C++. The goal is to understand the underlying concepts of these models and how they work. The models are not optimized for performance like PyTorch.
 
 ## Directory Structure
 
@@ -28,6 +28,7 @@ To run the unit tests, follow these steps:
 1. Ensure you have built the project as described in the "How to Build" section.
 2. Navigate to the `build/` directory.
 3. Run the tests using the following command:
+   
    ```sh
    make test
    ```
