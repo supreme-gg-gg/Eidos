@@ -13,13 +13,17 @@ private:
     std::vector<Eigen::MatrixXf> grad_weights;   // Gradients of weights
     std::vector<Eigen::VectorXf> grad_biases;    // Gradients of biases
 
-    Eigen::MatrixXf hidden_state;  // Current hidden state
+    Eigen::VectorXf hidden_state;  // Current hidden state
+    std::vector<Eigen::VectorXf> hidden_states;  // Hidden states for each time step
+    
     Activation* activation;        // Activation function
+    std::vector<Eigen::VectorXf> pre_activations;
+
     bool output_sequence;
     Eigen::MatrixXf input_sequence;
 
 public:
-    RNNLayer(int input_size, int hidden_size, Activation* activation, bool output_sequence = false);
+    RNNLayer(int input_size, int hidden_size, int output_size, Activation* activation, bool output_sequence = false);
 
     // Forward pass through the RNN layer
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;

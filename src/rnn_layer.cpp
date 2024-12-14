@@ -2,15 +2,15 @@
 #include "../include/rnn_layer.h"
 
 // Constructor
-RNNLayer::RNNLayer(int input_size, int hidden_size, Activation* activation, bool output_sequence)
+RNNLayer::RNNLayer(int input_size, int hidden_size, int output_size, Activation* activation, bool output_sequence)
     : activation(activation), output_sequence(output_sequence) {
     // Initialize weights and biases
-    weights.push_back(Eigen::MatrixXf::Random(hidden_size, input_size));  // W_h
-    weights.push_back(Eigen::MatrixXf::Random(hidden_size, hidden_size)); // U_h
-    weights.push_back(Eigen::MatrixXf::Random(hidden_size, hidden_size)); // W_o
+    weights.push_back(Eigen::MatrixXf::Random(hidden_size, input_size));  // W_h: H x D
+    weights.push_back(Eigen::MatrixXf::Random(hidden_size, hidden_size)); // U_r: H x H
+    weights.push_back(Eigen::MatrixXf::Random(output_size, hidden_size)); // W_o: O x H
 
-    biases.push_back(Eigen::VectorXf::Random(hidden_size));  // b_h
-    biases.push_back(Eigen::VectorXf::Random(hidden_size));  // b_o
+    biases.push_back(Eigen::VectorXf::Random(hidden_size));  // b_h: H
+    biases.push_back(Eigen::VectorXf::Random(output_size));  // b_o: O
 
     // Initialize gradients
     grad_weights.resize(weights.size());
@@ -23,7 +23,7 @@ RNNLayer::RNNLayer(int input_size, int hidden_size, Activation* activation, bool
     }
 
     // Initialize hidden state
-    hidden_state = Eigen::MatrixXf::Zero(hidden_size, 1);
+    hidden_state = Eigen::VectorXf::Zero(hidden_size);
 }
 
 Eigen::MatrixXf RNNLayer::forward(const Eigen::MatrixXf& input_sequence) {
@@ -33,32 +33,41 @@ Eigen::MatrixXf RNNLayer::forward(const Eigen::MatrixXf& input_sequence) {
 
     this->input_sequence = input_sequence;  // Store input sequence for backpropagation
 
-    std::vector<Eigen::VectorXf> outputs;  // To store outputs at each time step
+    // Pre activations for gradient computation
+    this->pre_activations.resize(T, Eigen::VectorXf::Zero(H));
+    
+    // Initialize hidden_states to store all hidden states during the sequence
+    this->hidden_states.resize(T + 1, Eigen::VectorXf::Zero(H));
+    hidden_states[0] = hidden_state;  // Store the initial hidden state
+
+    // To store outputs at each time step
+    Eigen::MatrixXf outputs = Eigen::MatrixXf::Zero(T, weights[2].rows());  
 
     for (int t = 0; t < T; ++t) {
-        // Input at time step t
         Eigen::VectorXf x_t = input_sequence.row(t);
+        
+        // Compute pre-activation and store it
+        Eigen::VectorXf pre_activation = weights[0] * x_t + weights[1] * hidden_states[t] + biases[0];
+        pre_activations[t] = pre_activation;
 
-        // hidden_state = activation(W_h * x_t + U_h * hidden_state + b_h)
-        hidden_state = activation->forward(weights[0] * x_t + weights[1] * hidden_state.col(0) + biases[0]);
+        // Apply activation function to get the next hidden state
+        hidden_states[t + 1] = activation->forward(pre_activation);
 
-        // Compute output for the current time step if output_sequence is true
+        // If output sequence is required, calculate and store the output
         if (output_sequence) {
-            Eigen::VectorXf o_t = weights[2] * hidden_state + biases[1];  // W_o * h_t + b_o
-            outputs.push_back(o_t);
+            Eigen::VectorXf o_t = weights[2] * hidden_states[t + 1] + biases[1];
+            outputs.row(t) = o_t.transpose();
         }
     }
 
+    // Update the hidden_state member to the final state for continuity
+    hidden_state = hidden_states[T];
+
     if (output_sequence) {
-        // Convert vector of outputs to a matrix (T x output_size)
-        Eigen::MatrixXf all_outputs(T, outputs[0].rows());
-        for (int t = 0; t < T; ++t) {
-            all_outputs.row(t) = outputs[t].transpose();
-        }
-        return all_outputs;  // Return all outputs as a matrix
+        return outputs; // Return output sequence
     } else {
         // If output_sequence is false, return the last hidden state
-        return hidden_state;
+        return hidden_states[T];
     }
 }
 
@@ -76,25 +85,18 @@ Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
     Eigen::MatrixXf grad_h_next = Eigen::MatrixXf::Zero(H, 1);  // Gradient of h_{t+1}
 
     for (int t = T - 1; t >= 0; --t) {
-        // Gradient w.r.t. output: dL/dy_t = dL/dy_t + dL/dh_t * dh_t/dy_t
-        Eigen::VectorXf grad_o_t = grad_output_sequence.row(t);
-        grad_weights[2] += grad_o_t * hidden_state(t);
+        Eigen::VectorXf grad_o_t = grad_output_sequence.row(t).transpose();
+        grad_weights[2] += grad_o_t * hidden_states[t + 1].transpose();
         grad_biases[1] += grad_o_t;
 
-        // Backpropagate to hidden state t: dL/dh_t = W_o^T * dL/dy_t + dL/dh_{t+1} * dh_{t+1}/dh_t
         Eigen::VectorXf grad_h_t = weights[2].transpose() * grad_o_t + grad_h_next;
+        Eigen::VectorXf grad_h_t_raw = activation->backward(pre_activations[t].transpose()) * grad_h_t;
 
-        // Backprop through activation function: dL/dh_t * dh_t/dz_t
-        // @bug this should be wrong because the activation function is not applied to the hidden state
-        Eigen::MatrixXf grad_h_t_raw = activation->backward(hidden_state) * grad_h_t;
+        grad_weights[0] += grad_h_t_raw * input_sequence.row(t);
+        grad_weights[1] += grad_h_t_raw * hidden_states[t].transpose();
+        grad_biases[0] += grad_h_t_raw;
 
-        // Gradients for W_h, U_h, b_h
-        grad_weights[0] += grad_h_t_raw * input_sequence(t); // dL/dW_h = dL/dh_t * dh_t/dW_h
-        grad_weights[1] += grad_h_t_raw * hidden_state(t - 1); // dL/dU_h = dL/dh_t * dh_t/dU_h
-        grad_biases[0] += grad_h_t_raw; // dL/db_h = dL/dh_t * dh_t/db_h
-
-        // Propagate to the previous time step
-        grad_h_next = weights[1].transpose() * grad_h_t_raw; // dL/dh_{t+1} = U_h^T * dL/dh_t
+        grad_h_next = weights[1].transpose() * grad_h_t_raw;
     }
 
     return grad_h_next;  // Return gradient w.r.t. input (optional)
