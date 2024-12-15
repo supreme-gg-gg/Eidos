@@ -87,8 +87,11 @@ Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
 
     for (int t = T - 1; t >= 0; --t) {
         Eigen::VectorXf grad_o_t = grad_output_sequence.row(t).transpose();
-        grad_weights[2] += grad_o_t * hidden_states[t + 1].transpose();
-        grad_biases[1] += grad_o_t;
+
+        if (output_sequence) {
+            grad_weights[2] += grad_o_t * hidden_states[t + 1].transpose();
+            grad_biases[1] += grad_o_t;
+        }
 
         Eigen::VectorXf grad_h_t = weights[2].transpose() * grad_o_t + grad_h_next;
         Eigen::VectorXf grad_h_t_raw = (activation->backward(pre_activations[t])).array() * grad_h_t.array();
@@ -101,45 +104,4 @@ Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
     }
 
     return grad_h_next;  // Return gradient w.r.t. input (optional)
-}
-
-// Optimizer interface methods
-bool RNNLayer::has_weights() const {
-    return true;
-}
-
-bool RNNLayer::has_bias() const {
-    return true;
-}
-
-std::vector<Eigen::MatrixXf*> RNNLayer::get_weights() {
-    std::vector<Eigen::MatrixXf*> pointers;
-    for (auto& weight : weights) {
-        pointers.push_back(&weight);
-    }
-    return pointers;
-}
-
-std::vector<Eigen::MatrixXf*> RNNLayer::get_grad_weights() {
-    std::vector<Eigen::MatrixXf*> pointers;
-    for (auto& grad_weight : grad_weights) {
-        pointers.push_back(&grad_weight);
-    }
-    return pointers;
-}
-
-std::vector<Eigen::VectorXf*> RNNLayer::get_bias() {
-    std::vector<Eigen::VectorXf*> pointers;
-    for (auto& bias : biases) {
-        pointers.push_back(&bias);
-    }
-    return pointers;
-}
-
-std::vector<Eigen::VectorXf*> RNNLayer::get_grad_bias() {
-    std::vector<Eigen::VectorXf*> pointers;
-    for (auto& grad_bias : grad_biases) {
-        pointers.push_back(&grad_bias);
-    }
-    return pointers;
 }

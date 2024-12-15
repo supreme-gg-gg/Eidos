@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
-#include "../include/dense_layer.h"
+#include "../include/layers/dense_layer.h"
 #include "../include/loss_fns.h"
 
 TEST(DenseLayerTest, ForwardPassCorrectShape) {
@@ -26,7 +26,7 @@ TEST(DenseLayerTest, BackwardPassCorrectShapes) {
     // Verify gradient shapes
     ASSERT_EQ(grad_input.rows(), 3); // Same as input features
     ASSERT_EQ(grad_input.cols(), 10);  // Same as number of samples
-    ASSERT_EQ(layer.get_grad_weights()->rows(), 3); // Matches output features
-    ASSERT_EQ(layer.get_grad_weights()->cols(), 5); // Matches input features
-    ASSERT_EQ(layer.get_grad_bias()->size(), 5); // Matches output features
+    ASSERT_EQ(layer.get_grad_weights()[0]->rows(), 3); // Matches output features
+    ASSERT_EQ(layer.get_grad_weights()[0]->cols(), 5); // Matches input features
+    ASSERT_EQ(layer.get_grad_bias()[0]->size(), 5); // Matches output features
 }
