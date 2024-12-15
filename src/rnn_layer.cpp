@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
-#include "../include/rnn_layer.h"
+#include <iostream>
+#include "../include/layers/rnn_layer.h"
 
 // Constructor
 RNNLayer::RNNLayer(int input_size, int hidden_size, int output_size, Activation* activation, bool output_sequence)
@@ -13,8 +14,8 @@ RNNLayer::RNNLayer(int input_size, int hidden_size, int output_size, Activation*
     biases.push_back(Eigen::VectorXf::Random(output_size));  // b_o: O
 
     // Initialize gradients
-    grad_weights.resize(weights.size());
-    grad_biases.resize(biases.size());
+    grad_weights.resize(weights[0].size());
+    grad_biases.resize(biases[0].size());
     for (size_t i = 0; i < weights.size(); ++i) {
         grad_weights[i] = Eigen::MatrixXf::Zero(weights[i].rows(), weights[i].cols());
     }
@@ -90,7 +91,7 @@ Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
         grad_biases[1] += grad_o_t;
 
         Eigen::VectorXf grad_h_t = weights[2].transpose() * grad_o_t + grad_h_next;
-        Eigen::VectorXf grad_h_t_raw = activation->backward(pre_activations[t].transpose()) * grad_h_t;
+        Eigen::VectorXf grad_h_t_raw = (activation->backward(pre_activations[t])).array() * grad_h_t.array();
 
         grad_weights[0] += grad_h_t_raw * input_sequence.row(t);
         grad_weights[1] += grad_h_t_raw * hidden_states[t].transpose();

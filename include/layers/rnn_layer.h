@@ -2,8 +2,8 @@
 #define RNN_LAYER_H
 
 #include <Eigen/Dense>
-#include "layer.h"
-#include "activation_fns.h"
+#include "../layer.h"
+#include "../activation_fns.h"
 
 class RNNLayer : public Layer {
 private:

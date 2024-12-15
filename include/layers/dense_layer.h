@@ -1,8 +1,8 @@
 #ifndef DENSE_LAYER_H
 #define DENSE_LAYER_H
 
-#include "layer.h"
-#include "optimizer.h"
+#include "../layer.h"
+#include "../optimizer.h"
 #include <Eigen/Dense>
 
 /**

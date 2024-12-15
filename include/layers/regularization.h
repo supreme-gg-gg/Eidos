@@ -1,7 +1,7 @@
 #ifndef REGULARIZATION_H
 #define REGULARIZATION_H
 
-#include "layer.h"
+#include "../layer.h"
 #include <Eigen/Dense>
 #include <random>
 
