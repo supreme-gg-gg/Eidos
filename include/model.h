@@ -11,41 +11,6 @@
 #include "optimizer.h"
 #include "loss.h"
 
-const unsigned short IMAGE_CHANNEL_NUM = 3;
-const unsigned short IMAGE_XSIZE = 256;
-const unsigned short IMAGE_YSIZE = 256;
-
-class ImageSample {
-    std::string label;
-    Eigen::MatrixXd data[IMAGE_CHANNEL_NUM]; //0: red, 1: green, 2: blue
-public:
-    ImageSample(std::string label, Eigen::MatrixXd& redMatrix, Eigen::MatrixXd& greenMatrix, Eigen::MatrixXd& blueMatrix);
-};
-
-class CNN_Model {
-public:
-    int loadData(std::string dataLabelsPath, float trainToTestSplitRatio=0.5);
-    
-    int serializeParameters(std::string toFilePath);
-    int deserializeParameters(std::string fromFilePath);
-    int Train();
-    int Test();
-    
-    // Prints out some model details for debugging
-    std::string Info();
-private:
-    /*
-    Example usage:
-    ```
-    parameters["C1"] //returns the corresponding parameters matrix or vector for the C1 layer.
-    ```
-    */
-    std::map<std::string, std::variant<Eigen::MatrixXd, Eigen::VectorXd>> parameters;
-    
-    std::vector<ImageSample> trainingSamples;
-    std::vector<ImageSample> testingSamples;
-};
-
 /**
  * @class Model
  * @brief Represents a neural network model consisting of multiple layers and an optimizer.
@@ -59,8 +24,9 @@ private:
  */
 class Model {
 private:
-    std::vector<std::unique_ptr<Layer>> layers; // Vector of unique pointers to layers
+    std::vector<std::unique_ptr<Layer> > layers; // Vector of unique pointers to layers
     Optimizer* optimizer; // Pointer to the optimizer used for training the model
+    bool training = true;
 
 public:
     /**
@@ -109,6 +75,32 @@ public:
     void optimize() const;
 
     /**
+     * @brief Sets the model to training mode.
+     *
+     * This function configures the model to be in training mode, enabling
+     * features such as dropout and batch normalization that are typically
+     * used during the training process.
+     * 
+     * @note This function should be called before training the model if
+     * you are using manual training loop. Otherwise, the `Train` function
+     * will automatically set the model to training mode.
+     */
+    void set_train();
+
+    /**
+     * @brief Sets the model to inference mode.
+     *
+     * This function configures the model to operate in inference mode,
+     * which is typically used for making predictions or classifications
+     * based on the trained model.
+     * 
+     * @note This function should be called before using the model for
+     * inference if you are using manual inference loop. Otherwise, the
+     * `Test` function will automatically set the model to inference mode.
+     */
+    void set_inference();
+
+    /**
      * @brief Trains the model using the provided training data and labels.
      * 
      * @param training_data A matrix containing the training data.
@@ -128,6 +120,9 @@ public:
      * @param loss_function The loss function to evaluate the model's performance.
      */
     void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
+
+    void Serialize(std::string toFilePath);
+    void Deserialize(std::string fromFilePath);
 
     ~Model() = default;
 };

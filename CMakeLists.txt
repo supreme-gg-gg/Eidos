@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ComputerVisionCpp)
-
 # Enable C++17 or later
 set(CMAKE_CXX_STANDARD 17)
+
+project(DeepLearningCpp)
 
 # Find Eigen3
 find_package(Eigen3 REQUIRED)

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <random>
 
 namespace fs = std::filesystem;
 
@@ -45,9 +46,12 @@ int loadImage(fs::path imagePath, Eigen::MatrixXf* redMatrix, Eigen::MatrixXf* g
         return 1;
     }
 
-    fs::current_path(workingDir);
+    Console::log("George1: "+workingDir.string(), Console::DEBUG);
+    fs::current_path(workingDir.string());
+    Console::log("George1-1", Console::DEBUG);
     fs::path currentDir = fs::current_path();
     fs::create_directory("temp");
+    Console::log(currentDir.string(), Console::DEBUG);
     fs::current_path(currentDir / "temp");
     command[0] += " -plain "+imgPath.generic_string()+" > "+imgPath.stem().generic_string()+"-0.ppm 2> nul";
     command[1] = "pamscale -xyfill 256 256 "+imgPath.stem().generic_string()+"-0.ppm > "+imgPath.stem().generic_string()+"-1.ppm";
@@ -99,7 +103,9 @@ int loadImage(fs::path imagePath, Eigen::MatrixXf* redMatrix, Eigen::MatrixXf* g
             std::istringstream iss(line);
             int buffer[3];
             while (iss >> buffer[0] >> buffer[1] >> buffer[2]) {
-                (*redMatrix)(row, col) = buffer[0];
+                (*redMatrix)(row, col) = buffer[0] / 255.0;
+                (*greenMatrix)(row, col) = buffer[1] / 255.0;
+                (*blueMatrix)(row, col) = buffer[2] / 255.0;
                 (*greenMatrix)(row, col) = buffer[1];
                 (*blueMatrix)(row, col) = buffer[2];
                 col++;
@@ -128,6 +134,7 @@ int loadImage(fs::path imagePath, Eigen::MatrixXf* redMatrix, Eigen::MatrixXf* g
 }
 
 void ImageLoader::load_data(const std::string& filePath, std::vector<std::vector<Eigen::MatrixXf>>& features, std::vector<std::string>& labels) {
+    Console::log("George0", Console::DEBUG);
     CSVParser parser = CSVParser(',');
     std::vector<std::vector<std::string>> data = parser.parse(filePath);
     
@@ -150,22 +157,25 @@ void ImageLoader::load_data(const std::string& filePath, std::vector<std::vector
 
     // Extract labels and features
     fs::path currentDir = fs::current_path();
+    Console::log(fs::absolute(filePath).parent_path().string(), Console::DEBUG);
     fs::current_path(fs::absolute(filePath).parent_path());
+    fs::path workingDir = fs::current_path();
+    Console::log("George69", Console::DEBUG);
     labels.clear();
     for (size_t i = 1; i < data.size(); ++i) {
-        if (data[i].size() != headers.size()) {
+        if (data[i].size() != 2) {
             throw std::runtime_error("Invalid data entry in CSV file.");
         }
         labels.push_back(data[i][labelIndex]);
         
-        std::vector<Eigen::MatrixXf> imgData;
+        std::vector<Eigen::MatrixXf> imgData(3);
         fs::path imgPath = data[i][1-labelIndex];
         if (fs::is_regular_file(imgPath)) {
             std::string extension = imgPath.extension().generic_string();
             std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
             if (extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".bmp") {
-                fs::current_path(fs::absolute(filePath).parent_path());
-                if (loadImage(fs::absolute(data[i][1-labelIndex]), &imgData[0], &imgData[1], &imgData[2], currentDir) != 0) {
+                //fs::current_path(fs::absolute(filePath).parent_path());
+                if (loadImage(fs::absolute(data[i][1-labelIndex]), &imgData[0], &imgData[1], &imgData[2], workingDir) != 0) {
                     imgData.clear();
                 };
             }
@@ -180,8 +190,41 @@ void ImageLoader::load_data(const std::string& filePath, std::vector<std::vector
         }
         features.push_back(imgData);
     }
+    fs::current_path(currentDir);
 }
 
-void ImageLoader::preprocess_data(std::vector<Eigen::MatrixXf>& features, std::vector<std::string>& labels) {
-    // Implement preprocessing steps here
+void ImageLoader::split_data(const std::vector<std::vector<Eigen::MatrixXf>>& features, const std::vector<std::string>& labels, std::vector<std::vector<Eigen::MatrixXf>>& train_features, std::vector<std::string>& train_labels, std::vector<std::vector<Eigen::MatrixXf>>& test_features, std::vector<std::string>& test_labels, float trainToTestSplitRatio) {
+    std::vector<int> indices(features.size());
+    for (size_t i = 0; i < indices.size(); ++i) {
+        indices[i] = i;
+    }
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(indices.begin(), indices.end(), g);
+
+    train_features.clear();
+    train_labels.clear();
+    test_features.clear();
+    test_labels.clear();
+    size_t i = 0;
+    for (; i < indices.size() * trainToTestSplitRatio; ++i) {
+        train_features.push_back(features[indices[i]]);
+        train_labels.push_back(labels[indices[i]]);
+    }
+    for (; i < indices.size(); ++i) {
+        test_features.push_back(features[indices[i]]);
+        test_labels.push_back(labels[indices[i]]);
+    }
+}
+
+void ImageLoader::convert_to_one_hot(const std::vector<std::string>& labels, std::vector<Eigen::MatrixXf>& one_hot_labels, const std::map<std::string, int>& mapping) {
+    one_hot_labels.clear();
+    for (const std::string& label : labels) {
+        if (mapping.find(label) == mapping.end()) {
+            throw std::runtime_error("Label not found in mapping.");
+        }
+        Eigen::MatrixXf oneHotVector = Eigen::MatrixXf::Zero(1, mapping.size());
+        oneHotVector(0, mapping.at(label)) = 1.0f;
+        one_hot_labels.push_back(oneHotVector);
+    }
 }

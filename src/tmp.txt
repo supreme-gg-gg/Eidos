@@ -1,0 +1,13 @@
+activation_fns.cpp
+CMakeLists.txt
+console.cpp
+csvparser.cpp
+dense_layer.cpp
+generic_data_loader.cpp
+image_loader.cpp
+loss_fns.cpp
+main.cpp
+model.cpp
+optimizer.cpp
+tmp.txt
+utils.cpp
