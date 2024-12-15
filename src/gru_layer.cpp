@@ -57,16 +57,16 @@ Eigen::MatrixXf GRULayer::forward(const Eigen::MatrixXf& input) {
         Eigen::VectorXf x_t = input.row(i);
 
         // Reset gate: r_t = σ(W_r * x_t + U_r * h_{t-1} + b_r)
-        Eigen::VectorXf r_t = gate_activation->forward(weights[0] * x_t + weights[1] * hidden_states[i] + biases[0]);
+        Eigen::VectorXf r_t = activation->forward(weights[0] * x_t + weights[1] * hidden_states[i] + biases[0]);
         reset_gates[i] = r_t;
 
         // Update gate: z_t = σ(W_z * x_t + U_z * h_{t-1} + b_z)
-        Eigen::VectorXf z_t = gate_activation->forward(weights[2] * x_t + weights[3] * hidden_states[i] + biases[1]);
+        Eigen::VectorXf z_t = activation->forward(weights[2] * x_t + weights[3] * hidden_states[i] + biases[1]);
         update_gates[i] = z_t;
 
         // Candidate state: h_t_candidate = tanh(W_h * x_t + U_h * (r_t * h_{t-1}) + b_h)
         Eigen::VectorXf r_h_t_product = r_t.array() * hidden_states[i].array(); // Element-wise multiplication (r_t and hidden_states[i] are vectors)
-        Eigen::VectorXf h_t_candidate = activation->forward(weights[4] * x_t + weights[5] * r_h_t_product + biases[2]);
+        Eigen::VectorXf h_t_candidate = gate_activation->forward(weights[4] * x_t + weights[5] * r_h_t_product + biases[2]);
 
         // Hidden state: h_t = (1 - z_t) * h_{t-1} + z_t * h_t_candidate
         hidden_states[i + 1] = (1 - z_t.array()) * hidden_states[i].array() + z_t.array() * h_t_candidate.array();

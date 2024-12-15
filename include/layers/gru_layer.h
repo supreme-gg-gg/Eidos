@@ -21,8 +21,8 @@ private:
     std::vector<Eigen::VectorXf> update_gates;   // Update gate activations
     std::vector<Eigen::VectorXf> candidate_states; // Candidate states
 
-    Activation* activation;        // Activation function for candidate state
-    Activation* gate_activation;   // Activation for gates (usually sigmoid)
+    Activation* activation;        // Activation function for reset and update gates (sigmoid) 
+    Activation* gate_activation;   // Activation for candidate state (tanh)
 
     Eigen::MatrixXf input_sequence; // Input data stored for backward pass
     bool output_sequence;           // Whether to output the full sequence or just the last state
