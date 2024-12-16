@@ -45,9 +45,7 @@ public:
      * 
      * @param callback A pointer to the Callback object to be added.
      */
-    void add_callback(Callback* callback) {
-        callbacks.push_back(callback);
-    }
+    void add_callback(Callback* callback);
 
     /**
      * @brief Sets the optimizer for the model.

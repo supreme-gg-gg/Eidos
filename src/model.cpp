@@ -16,6 +16,10 @@ void Model::Add(Layer* layer) {
     layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
 }
 
+void Model::add_callback(Callback* callback) {
+    callbacks.push_back(callback);
+}
+
 void Model::set_optimizer(Optimizer& opt) {
     optimizer = &opt;
 }
@@ -67,9 +71,12 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
 
     // Split the data into batches
     int num_batches = training_data.rows() / batch_size;
+    bool stop_training = false;
     Eigen::MatrixXf inputs;
     Eigen::MatrixXf targets;
     for (int epoch = 0; epoch < epochs; ++epoch) {
+
+        // Handle batches
         float total_loss = 0.0f;
         for (int i = 0; i < num_batches; ++i) {
             // Get the current batch
@@ -79,13 +86,32 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
             Eigen::MatrixXf outputs = forward(inputs);
             float loss = loss_function.forward(outputs, targets);
             total_loss += loss;
+
             // Backward pass
             Eigen::MatrixXf grad_loss = loss_function.backward();
             backward(grad_loss);
             // Optimize
             optimize();
         }
+        // Calculate average loss for the batch
         float average_loss = total_loss / num_batches;
+
+        // Notify callbacks at the end of the epoch
+        for (auto& callback : callbacks) {
+            callback->on_epoch_end(epoch, average_loss);
+
+            if (auto early_stopping = dynamic_cast<EarlyStopping*>(callback)) {
+                if (early_stopping->should_stop()) {
+                    stop_training = true;
+                }
+            }
+        }
+
+        if (stop_training) {
+            std::cout << "Stopping early at epoch " << epoch << "!" << std::endl;
+            break;
+        }
+
         std::cout << "Epoch " << epoch << " completed. Average Loss: " << average_loss << std::endl;
     }
 }
