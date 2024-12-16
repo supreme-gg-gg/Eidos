@@ -5,6 +5,24 @@
 #include "../layer.h"
 #include "../activation_fns.h"
 
+/**
+ * @class RNNLayer
+ * @brief A class representing a Recurrent Neural Network (RNN) layer.
+ * 
+ * The RNNLayer class inherits from the Layer class and implements a recurrent neural network layer.
+ * It includes methods for forward and backward passes, as well as methods to retrieve weights and biases.
+ * 
+ * @details
+ * The RNNLayer class stores weights, biases, and their gradients in vectors for flexibility. It also maintains
+ * the current hidden state and the hidden states for each time step. The class uses an activation function
+ * specified during construction and can output either the entire sequence or just the final output.
+ * 
+ * @param input_size The size of the input vector.
+ * @param hidden_size The size of the hidden state vector.
+ * @param output_size The size of the output vector.
+ * @param activation Pointer to the activation function to be used in the RNN layer.
+ * @param output_sequence Boolean flag indicating whether to output the entire sequence (true) or just the final output (false). Default is false.
+ */
 class RNNLayer : public Layer {
 private:
     // Store weights and biases in vectors for flexibility
@@ -23,25 +41,74 @@ private:
     Eigen::MatrixXf input_sequence;
 
 public:
-    RNNLayer(int input_size, int hidden_size, int output_size, Activation* activation, bool output_sequence = false);
+    /**
+     * @brief Constructs an RNNLayer object.
+     * 
+     * @param input_size The size of the input vector.
+     * @param hidden_size The size of the hidden state vector.
+     * @param output_size The size of the output vector.
+     * @param activation Pointer to the activation function to be used in the RNN layer.
+     * @param output_sequence Boolean flag indicating whether to output the entire sequence (true) or just the final output (false). Default is false.
+     */
+    RNNLayer(int input_size, int hidden_size, int output_size, Activation* activation, bool output_sequence = true);
 
-    // Forward pass through the RNN layer
+    /**
+     * @brief Performs the forward pass of the RNN layer.
+     * 
+     * @param input The input matrix to the RNN layer.
+     * @return The output matrix after applying the RNN layer.
+     */
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
 
-    // Backward pass for the RNN layer
+    /**
+     * @brief Performs the backward pass for the RNN layer.
+     * 
+     * This function computes the gradient of the loss with respect to the input
+     * of the RNN layer, given the gradient of the loss with respect to the output
+     * of the RNN layer.
+     * 
+     * @param grad_output The gradient of the loss with respect to the output of the RNN layer.
+     * @return The gradient of the loss with respect to the input of the RNN layer.
+     */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
     bool has_weights() const { return true; }
     bool has_bias() const { return true; }
 
+    /**
+     * @brief Retrieves the weights of the RNN layer.
+     * 
+     * This function returns a vector of pointers to Eigen::MatrixXf objects,
+     * which represent the weights of the RNN layer.
+     * 
+     * @return std::vector<Eigen::MatrixXf*> A vector containing pointers to the weight matrices.
+     */
     std::vector<Eigen::MatrixXf*> get_weights() { return get_pointers(weights); }
     std::vector<Eigen::MatrixXf*> get_grad_weights() { return get_pointers(grad_weights); }
+
+    /**
+     * @brief Retrieves the biases of the RNN layer.
+     *
+     * This function returns a vector of pointers to the biases of the RNN layer.
+     *
+     * @return std::vector<Eigen::VectorXf*> A vector containing pointers to the biases.
+     */
     std::vector<Eigen::VectorXf*> get_bias() { return get_pointers(biases); }
     std::vector<Eigen::VectorXf*> get_grad_bias() { return get_pointers(grad_biases); }
     
     ~RNNLayer() = default;
 
 protected:
+    /**
+     * @brief Converts a vector of objects to a vector of pointers to those objects.
+     * 
+     * This function takes a vector of objects and returns a vector containing pointers
+     * to each of the objects in the original vector.
+     * 
+     * @tparam T The type of the objects in the vector.
+     * @param vec A reference to a vector of objects of type T.
+     * @return std::vector<T*> A vector of pointers to the objects in the input vector.
+     */
     template <typename T>
     std::vector<T*> get_pointers(std::vector<T>& vec) {
         std::vector<T*> pointers;

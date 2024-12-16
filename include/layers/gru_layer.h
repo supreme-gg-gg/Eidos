@@ -6,6 +6,38 @@
 #include <vector>
 #include <Eigen/Dense>
 
+/**
+ * @class GRULayer
+ * @brief A Gated Recurrent Unit (GRU) layer for recurrent neural networks.
+ * 
+ * This class implements a GRU layer, which is a type of recurrent neural network (RNN) layer.
+ * It includes methods for the forward and backward passes, as well as storing weights, biases,
+ * and hidden states.
+ * 
+ * @details
+ * The GRU layer consists of reset gates, update gates, and candidate states. It uses two 
+ * activation functions: one for the gates (typically sigmoid) and one for the candidate state 
+ * (typically tanh). The layer can output either the full sequence of hidden states or just the 
+ * last hidden state, depending on the `output_sequence` parameter.
+ * 
+ * @param input_size The number of input features for the GRU layer.
+ * @param hidden_size The number of hidden units in the GRU layer.
+ * @param output_size The number of output features from the GRU layer.
+ * @param activation The activation function for the reset and update gates.
+ * @param gate_activation The activation function for the candidate state.
+ * @param output_sequence Whether to output the full sequence of hidden states or just the last state.
+ * 
+ * @note This class inherits from the RNNLayer base class.
+ * 
+ * @section Example
+ * @code
+ * Activation* sigmoid = new SigmoidActivation();
+ * Activation* tanh = new TanhActivation();
+ * GRULayer gru_layer(10, 20, 30, sigmoid, tanh, true);
+ * Eigen::MatrixXf input = Eigen::MatrixXf::Random(5, 10); // Example input
+ * Eigen::MatrixXf output = gru_layer.forward(input);
+ * @endcode
+ */
 class GRULayer : public RNNLayer {
 private:
     // Store weights and biases in vectors for flexibility
@@ -29,7 +61,10 @@ private:
 
 public:
     // Constructor
-    GRULayer(int input_size, int hidden_size, int output_size, Activation* activation, Activation* gate_activation, bool output_sequence = false);
+    /**
+     * @param input_size The number of input features for the GRU layer.
+     */
+    GRULayer(int input_size, int hidden_size, int output_size, Activation* activation, Activation* gate_activation, bool output_sequence = true);
 
     // Forward pass through the GRU layer
     Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
