@@ -10,6 +10,7 @@
 #include "layer.h"
 #include "optimizer.h"
 #include "loss.h"
+#include "callback.h"
 
 /**
  * @class Model
@@ -25,6 +26,7 @@
 class Model {
 private:
     std::vector<std::unique_ptr<Layer> > layers; // Vector of unique pointers to layers
+    std::vector<Callback*> callbacks;  // List of callbacks
     Optimizer* optimizer; // Pointer to the optimizer used for training the model
     bool training = true;
 
@@ -35,6 +37,17 @@ public:
      * @param layer Pointer to the layer to be added.
      */
     void Add(Layer* layer); 
+
+    /**
+     * @brief Adds a callback to the list of callbacks.
+     * 
+     * This function appends the given callback to the internal list of callbacks.
+     * 
+     * @param callback A pointer to the Callback object to be added.
+     */
+    void add_callback(Callback* callback) {
+        callbacks.push_back(callback);
+    }
 
     /**
      * @brief Sets the optimizer for the model.
