@@ -13,11 +13,22 @@
 #include <Eigen/Dense>
 
 void Model::Add(Layer* layer) {
-    layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
+    this->layers.emplace_back(layer); // Wraps raw pointer in a unique_ptr
 }
 
 void Model::add_callback(Callback* callback) {
     callbacks.push_back(callback);
+}
+
+Layer* Model::get_layer(size_t index) const {
+    if (index >= this->layers.size()) {
+        throw std::out_of_range("Layer index out of range");
+    }
+    return layers[index].get();  // Access raw pointer from unique_ptr
+}
+
+size_t Model::num_layers() const {
+    return this->layers.size();  // Return the number of layers
 }
 
 void Model::set_optimizer(Optimizer& opt) {

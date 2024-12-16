@@ -41,6 +41,8 @@ public:
     // Should be overridden if the layer has different behavior during training and inference
     virtual void set_training(bool training) {}
 
+    virtual std::string get_name() const { return "Layer"; }
+
     // Virtual destructor to allow proper cleanup of derived classes
     virtual ~Layer() = default;
 };

@@ -72,6 +72,11 @@ public:
     // Backward pass for the GRU layer
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
+    // Get the name of the layer
+    std::string get_name() const override {
+        return "GRU";
+    }
+
     ~GRULayer() = default;
 };
 
