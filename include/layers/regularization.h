@@ -1,7 +1,7 @@
 #ifndef REGULARIZATION_H
 #define REGULARIZATION_H
 
-#include "layer.h"
+#include "../layer.h"
 #include <Eigen/Dense>
 #include <random>
 
@@ -72,7 +72,6 @@ private:
     bool training; ///< Flag to indicate if the layer is in training mode.
     float epsilon; ///< Small constant to avoid division by zero.
     int num_features; ///< Number of features in the input.
-    std::default_random_engine generator; ///< Random number generator.
 
     Eigen::MatrixXf normalized_input; ///< Normalized input matrix.
     Eigen::MatrixXf centered_input; ///< Centered input matrix.
@@ -123,25 +122,25 @@ public:
      * @brief Get the weights of the layer.
      * @return Pointer to the weights matrix.
      */
-    Eigen::MatrixXf* get_weights() { return &gamma; }
+    std::vector<Eigen::MatrixXf*> get_weights() { return {&gamma}; }
 
     /**
      * @brief Get the gradient of the weights.
      * @return Pointer to the gradient of the weights matrix.
      */
-    Eigen::MatrixXf* get_grad_weights() { return &grad_gamma; }
+    std::vector<Eigen::MatrixXf*> get_grad_weights() { return {&grad_gamma}; }
 
     /**
      * @brief Get the bias of the layer.
      * @return Pointer to the bias vector.
      */
-    Eigen::VectorXf* get_bias() { return &beta; }
+    std::vector<Eigen::VectorXf*> get_bias() { return {&beta}; }
 
     /**
      * @brief Get the gradient of the bias.
      * @return Pointer to the gradient of the bias vector.
      */
-    Eigen::VectorXf* get_grad_bias() { return &grad_beta; }
+    std::vector<Eigen::VectorXf*> get_grad_bias() { return {&grad_beta}; }
 
     /**
      * @brief Destructor for BatchNorm layer.

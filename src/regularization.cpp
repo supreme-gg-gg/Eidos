@@ -1,4 +1,4 @@
-#include "../include/regularization.h"
+#include "../include/layers/regularization.h"
 #include <Eigen/Dense>
 
 Dropout::Dropout(float probability) : probability(probability) {}

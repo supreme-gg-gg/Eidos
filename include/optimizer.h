@@ -55,10 +55,10 @@ public:
 
 private:
     struct Moments {
-        Eigen::MatrixXf m_w;   // First moment estimate for weights
-        Eigen::MatrixXf v_w;   // Second moment estimate for weights
-        Eigen::VectorXf m_b;   // First moment estimate for bias
-        Eigen::VectorXf v_b;   // Second moment estimate for bias
+        std::vector<Eigen::MatrixXf> m_w;  // First moment estimates for weights
+        std::vector<Eigen::MatrixXf> v_w;  // Second moment estimates for weights
+        std::vector<Eigen::VectorXf> m_b;  // First moment estimates for biases
+        std::vector<Eigen::VectorXf> v_b;  // Second moment estimates for biases
     };
 
     std::unordered_map<Layer*, Moments> moments;  // Maps layers to their moment estimates

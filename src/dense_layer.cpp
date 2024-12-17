@@ -1,4 +1,4 @@
-#include "../include/dense_layer.h"
+#include "../include/layers/dense_layer.h"
 
 DenseLayer::DenseLayer(int input_size, int output_size)
     : weights(Eigen::MatrixXf::Random(input_size, output_size) * std::sqrt(2.0f / (input_size + output_size))),
@@ -21,10 +21,18 @@ bool DenseLayer::has_weights() const { return true; }
 
 bool DenseLayer::has_bias() const { return true; }
 
-Eigen::MatrixXf* DenseLayer::get_weights() { return &weights; }
+std::vector<Eigen::MatrixXf*> DenseLayer::get_weights() {
+    return { &weights };
+}
 
-Eigen::MatrixXf* DenseLayer::get_grad_weights() { return &grad_weights; }
+std::vector<Eigen::MatrixXf*> DenseLayer::get_grad_weights() {
+    return { &grad_weights };
+}
 
-Eigen::VectorXf* DenseLayer::get_bias() { return &bias; }
+std::vector<Eigen::VectorXf*> DenseLayer::get_bias() {
+    return { &bias };
+}
 
-Eigen::VectorXf* DenseLayer::get_grad_bias() { return &grad_bias; }
+std::vector<Eigen::VectorXf*> DenseLayer::get_grad_bias() {
+    return { &grad_bias };
+}

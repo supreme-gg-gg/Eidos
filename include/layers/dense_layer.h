@@ -1,8 +1,8 @@
 #ifndef DENSE_LAYER_H
 #define DENSE_LAYER_H
 
-#include "layer.h"
-#include "optimizer.h"
+#include "../layer.h"
+#include "../optimizer.h"
 #include <Eigen/Dense>
 
 /**
@@ -31,10 +31,13 @@ public:
     bool has_weights() const override;
     bool has_bias() const override;
 
-    Eigen::MatrixXf* get_weights() override;
-    Eigen::MatrixXf* get_grad_weights() override;
-    Eigen::VectorXf* get_bias() override;
-    Eigen::VectorXf* get_grad_bias() override;
+    std::vector<Eigen::MatrixXf*> get_weights() override;
+
+    std::vector<Eigen::MatrixXf*> get_grad_weights() override;
+
+    std::vector<Eigen::VectorXf*> get_bias() override;
+
+    std::vector<Eigen::VectorXf*> get_grad_bias() override;
 };
 
 #endif //DENSE_LAYER_H

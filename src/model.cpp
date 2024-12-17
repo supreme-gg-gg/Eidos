@@ -2,7 +2,6 @@
 #include "../include/console.hpp"
 #include "../include/csvparser.h"
 #include "../include/layer.h"
-#include "../include/dense_layer.h"
 #include "../include/activation_fns.h"
 #include "../include/optimizer.h"
 #include <fstream>
