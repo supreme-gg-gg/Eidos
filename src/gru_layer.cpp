@@ -3,8 +3,7 @@
 #include <iostream>
 
 GRULayer::GRULayer(int input_size, int hidden_size, int output_size, Activation* activation, Activation* gate_activation, bool output_sequence) 
-        : activation(activation), gate_activation(gate_activation), output_sequence(output_sequence), 
-        RNNLayer(input_size, hidden_size, output_size, activation, output_sequence) {
+        : activation(activation), gate_activation(gate_activation), output_sequence(output_sequence){
     
     // Initialize weights and biases
     weights.push_back(Eigen::MatrixXf::Random(hidden_size, input_size));  // W_r: H x D
@@ -104,6 +103,7 @@ Eigen::MatrixXf GRULayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
     Eigen::VectorXf grad_h_next = Eigen::VectorXf::Zero(H);
 
     // Gradient of final output (if output_sequence is false)
+    // This is the gradient of the loss with respect to the final hidden state
     if (!output_sequence) {
         grad_h_next = grad_output_sequence.transpose();
     }
