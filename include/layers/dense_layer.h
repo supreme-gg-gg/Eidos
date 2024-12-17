@@ -38,6 +38,8 @@ public:
     std::vector<Eigen::VectorXf*> get_bias() override;
 
     std::vector<Eigen::VectorXf*> get_grad_bias() override;
+
+    std::string get_name() const override { return "Dense"; }
 };
 
 #endif //DENSE_LAYER_H

@@ -17,7 +17,12 @@ public:
     void save_previous_weights() {
         previous_weights.clear();  // Clear old data
         for (auto layer : layers) {
-            previous_weights[layer] = layer->get_weights();  // Save current weights
+            const auto& weights = layer->get_weights();
+            std::vector<Eigen::MatrixXf> weight_copies;
+            for (const auto* weight : weights) {
+                weight_copies.push_back(*weight);  // Store a copy of the matrix
+            }
+            previous_weights[layer] = weight_copies;
         }
     }
 
@@ -26,11 +31,11 @@ public:
         for (auto layer : layers) {
             auto current_weights = layer->get_weights();
             const auto& prev_weights = previous_weights[layer];
-            
+
             double total_norm = 0.0;
 
             for (size_t i = 0; i < current_weights.size(); ++i) {
-                total_norm += (*current_weights[i] - *prev_weights[i]).squaredNorm();
+                total_norm += (*current_weights[i] - prev_weights[i]).squaredNorm();
             }
 
             total_norm = std::sqrt(total_norm);
@@ -41,7 +46,7 @@ public:
 
 private:
     std::vector<Layer*> layers;  // Pointers to tracked layers
-    std::unordered_map<Layer*, std::vector<Eigen::MatrixXf*>> previous_weights;  // Previous weights for each layer
+    std::unordered_map<Layer*, std::vector<Eigen::MatrixXf>> previous_weights;  // Copies of previous weights
 };
 
 #endif // DEBUGGER_HPP
