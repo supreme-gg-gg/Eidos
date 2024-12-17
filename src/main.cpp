@@ -4,25 +4,9 @@
 #include "../include/layers.h"
 #include "../include/activation_fns.h"
 #include "../include/generic_data_loader.h"
+#include "../include/debugger.hpp"
 #include <Eigen/Dense>
 #include <iostream>
-#include <chrono>
-
-class Timer {
-public:
-    Timer() : start_time_point(std::chrono::high_resolution_clock::now()) {}
-
-    ~Timer() {
-        auto end_time_point = std::chrono::high_resolution_clock::now();
-        auto start = std::chrono::time_point_cast<std::chrono::milliseconds>(start_time_point).time_since_epoch().count();
-        auto end = std::chrono::time_point_cast<std::chrono::milliseconds>(end_time_point).time_since_epoch().count();
-        auto duration = end - start;
-        std::cout << "Duration: " << duration << " ms" << std::endl;
-    }
-
-private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> start_time_point;
-};
 
 // int main() {
 

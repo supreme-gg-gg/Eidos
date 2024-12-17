@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include "layer.h"
 #include <iostream>
+#include <chrono>
 
 /**
  * @class Debugger
