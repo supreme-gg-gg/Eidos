@@ -10,6 +10,7 @@
 #include "layer.h"
 #include "optimizer.h"
 #include "loss.h"
+#include "callback.h"
 
 /**
  * @class Model
@@ -18,13 +19,11 @@
  * The Model class provides functionalities to add layers, set an optimizer, perform forward
  * and backward passes, and optimize the model parameters. It is designed to be used in
  * machine learning tasks where a neural network model is trained and evaluated.
- * 
- * @note This class uses Eigen library for matrix operations and assumes that the Layer and
- * Optimizer classes are defined elsewhere in the codebase.
  */
 class Model {
 private:
     std::vector<std::unique_ptr<Layer> > layers; // Vector of unique pointers to layers
+    std::vector<Callback*> callbacks;  // List of callbacks
     Optimizer* optimizer; // Pointer to the optimizer used for training the model
     bool training = true;
 
@@ -35,6 +34,15 @@ public:
      * @param layer Pointer to the layer to be added.
      */
     void Add(Layer* layer); 
+
+    /**
+     * @brief Adds a callback to the list of callbacks.
+     * 
+     * This function appends the given callback to the internal list of callbacks.
+     * 
+     * @param callback A pointer to the Callback object to be added.
+     */
+    void add_callback(Callback* callback);
 
     /**
      * @brief Sets the optimizer for the model.
@@ -120,6 +128,21 @@ public:
      * @param loss_function The loss function to evaluate the model's performance.
      */
     void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
+
+    /**
+     * @brief Retrieves a pointer to the layer at the specified index.
+     * 
+     * @param index The index of the layer to retrieve.
+     * @return Layer* A pointer to the layer at the specified index.
+     */
+    Layer* get_layer(size_t index) const;
+
+    /**
+     * @brief Get the number of layers in the model.
+     * 
+     * @return The number of layers as a size_t.
+     */
+    size_t num_layers() const;
 
     void Serialize(std::string toFilePath);
     void Deserialize(std::string fromFilePath);

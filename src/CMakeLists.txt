@@ -1,7 +1,8 @@
-# Add all .cpp files in the src directory
+# Add all .cpp files in the src directory (excluding main.cpp)
 file(GLOB SOURCES "*.cpp")
+list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")  # Exclude main.cpp from SOURCES
 
-add_executable(main ${SOURCES})
+add_executable(main "main.cpp" ${SOURCES})
 
 # Find OpenMP
 find_package(OpenMP)
@@ -21,3 +22,23 @@ add_definitions(-DEIGEN_NUM_THREADS=${EIGEN_NUM_THREADS})
 
 # Link Eigen3 to the main executable
 target_link_libraries(main PRIVATE Eigen3::Eigen)
+
+# Add option for compiling demo executables
+option(BUILD_DEMO_EXECUTABLES "Build demo executables" OFF)
+
+# If the option is ON, compile the demo executables
+if(BUILD_DEMO_EXECUTABLES)
+    message(STATUS "Building demo executables.")
+
+    # Create three demo executables with sources from src, excluding main.cpp
+    add_executable(run_mlp "demo/run_mlp.cpp" ${SOURCES})
+    add_executable(run_mnist "demo/run_mnist.cpp" ${SOURCES})
+    add_executable(run_rnn "demo/run_rnn.cpp" ${SOURCES})
+
+    # Link Eigen3 and OpenMP to the demo executables
+    target_link_libraries(run_mlp PRIVATE Eigen3::Eigen OpenMP::OpenMP_CXX)
+    target_link_libraries(run_mnist PRIVATE Eigen3::Eigen OpenMP::OpenMP_CXX)
+    target_link_libraries(run_rnn PRIVATE Eigen3::Eigen OpenMP::OpenMP_CXX)
+else()
+    message(STATUS "Not building demo executables.")
+endif()
