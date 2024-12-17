@@ -1,7 +1,7 @@
 #ifndef GRU_LAYER_H
 #define GRU_LAYER_H
 
-#include "rnn_layer.h"
+#include "../layer.h"
 #include "../activations.h"
 #include <vector>
 #include <Eigen/Dense>
@@ -27,8 +27,6 @@
  * @param gate_activation The activation function for the candidate state.
  * @param output_sequence Whether to output the full sequence of hidden states or just the last state.
  * 
- * @note This class inherits from the RNNLayer base class.
- * 
  * @section Example
  * @code
  * Activation* sigmoid = new SigmoidActivation();
@@ -38,7 +36,7 @@
  * Eigen::MatrixXf output = gru_layer.forward(input);
  * @endcode
  */
-class GRULayer : public RNNLayer {
+class GRULayer : public Layer {
 private:
     // Store weights and biases in vectors for flexibility
     std::vector<Eigen::MatrixXf> weights;        // Weight matrices (W_r, U_r, W_z, U_z, W_h, U_h, W_o)
@@ -75,6 +73,25 @@ public:
     // Get the name of the layer
     std::string get_name() const override {
         return "GRU";
+    }
+
+    bool has_weights() const { return true; }
+    bool has_bias() const { return true; }
+
+    std::vector<Eigen::MatrixXf*> get_weights() { return get_pointers(weights); }
+    std::vector<Eigen::MatrixXf*> get_grad_weights() { return get_pointers(grad_weights); }
+
+    std::vector<Eigen::VectorXf*> get_bias() { return get_pointers(biases); }
+    std::vector<Eigen::VectorXf*> get_grad_bias() { return get_pointers(grad_biases); }
+
+protected:
+    template <typename T>
+    std::vector<T*> get_pointers(std::vector<T>& vec) {
+        std::vector<T*> pointers;
+        for (auto& item : vec) {
+            pointers.push_back(&item);
+        }
+        return pointers;
     }
 
     ~GRULayer() = default;
