@@ -5,5 +5,6 @@
 #include "layers/rnn_layer.h"
 #include "layers/regularization.h"
 #include "layers/gru_layer.h"
+#include "layers/flatten_layer.h"
 
 #endif //LAYERS_H

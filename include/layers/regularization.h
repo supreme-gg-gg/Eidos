@@ -110,37 +110,37 @@ public:
      * @brief Check if the layer has weights.
      * @return True if the layer has weights, false otherwise.
      */
-    bool has_weights() const { return true; }
+    bool has_weights() const override { return true; }
 
     /**
      * @brief Check if the layer has bias.
      * @return True if the layer has bias, false otherwise.
      */
-    bool has_bias() const { return true; }
+    bool has_bias() const override { return true; }
 
     /**
      * @brief Get the weights of the layer.
      * @return Pointer to the weights matrix.
      */
-    std::vector<Eigen::MatrixXf*> get_weights() { return {&gamma}; }
+    std::vector<Eigen::MatrixXf*> get_weights() override { return {&gamma}; }
 
     /**
      * @brief Get the gradient of the weights.
      * @return Pointer to the gradient of the weights matrix.
      */
-    std::vector<Eigen::MatrixXf*> get_grad_weights() { return {&grad_gamma}; }
+    std::vector<Eigen::MatrixXf*> get_grad_weights() override { return {&grad_gamma}; }
 
     /**
      * @brief Get the bias of the layer.
      * @return Pointer to the bias vector.
      */
-    std::vector<Eigen::VectorXf*> get_bias() { return {&beta}; }
+    std::vector<Eigen::VectorXf*> get_bias() override { return {&beta}; }
 
     /**
      * @brief Get the gradient of the bias.
      * @return Pointer to the gradient of the bias vector.
      */
-    std::vector<Eigen::VectorXf*> get_grad_bias() { return {&grad_beta}; }
+    std::vector<Eigen::VectorXf*> get_grad_bias() override { return {&grad_beta}; }
 
     /**
      * @brief Destructor for BatchNorm layer.

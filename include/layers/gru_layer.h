@@ -75,14 +75,14 @@ public:
         return "GRU";
     }
 
-    bool has_weights() const { return true; }
-    bool has_bias() const { return true; }
+    bool has_weights() const override { return true; }
+    bool has_bias() const override { return true; }
 
-    std::vector<Eigen::MatrixXf*> get_weights() { return get_pointers(weights); }
-    std::vector<Eigen::MatrixXf*> get_grad_weights() { return get_pointers(grad_weights); }
+    std::vector<Eigen::MatrixXf*> get_weights() override { return get_pointers(weights); }
+    std::vector<Eigen::MatrixXf*> get_grad_weights() override { return get_pointers(grad_weights); }
 
-    std::vector<Eigen::VectorXf*> get_bias() { return get_pointers(biases); }
-    std::vector<Eigen::VectorXf*> get_grad_bias() { return get_pointers(grad_biases); }
+    std::vector<Eigen::VectorXf*> get_bias() override { return get_pointers(biases); }
+    std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
 
 protected:
     template <typename T>

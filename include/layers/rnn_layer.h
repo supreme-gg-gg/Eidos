@@ -72,8 +72,8 @@ public:
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
-    bool has_weights() const { return true; }
-    bool has_bias() const { return true; }
+    bool has_weights() const override { return true; }
+    bool has_bias() const override { return true; }
 
     /**
      * @brief Retrieves the weights of the RNN layer.
@@ -83,8 +83,8 @@ public:
      * 
      * @return std::vector<Eigen::MatrixXf*> A vector containing pointers to the weight matrices.
      */
-    std::vector<Eigen::MatrixXf*> get_weights() { return get_pointers(weights); }
-    std::vector<Eigen::MatrixXf*> get_grad_weights() { return get_pointers(grad_weights); }
+    std::vector<Eigen::MatrixXf*> get_weights() override { return get_pointers(weights); }
+    std::vector<Eigen::MatrixXf*> get_grad_weights() override { return get_pointers(grad_weights); }
 
     /**
      * @brief Retrieves the biases of the RNN layer.
@@ -93,8 +93,8 @@ public:
      *
      * @return std::vector<Eigen::VectorXf*> A vector containing pointers to the biases.
      */
-    std::vector<Eigen::VectorXf*> get_bias() { return get_pointers(biases); }
-    std::vector<Eigen::VectorXf*> get_grad_bias() { return get_pointers(grad_biases); }
+    std::vector<Eigen::VectorXf*> get_bias() override { return get_pointers(biases); }
+    std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
     
     ~RNNLayer() = default;
 
