@@ -120,6 +120,26 @@ public:
         return flat;
     }
 
+    // Slicing function: Get a slice of the tensor (e.g., extracting (1, batch_size, features) from (num_batch, batch_size, features))
+    Tensor slice(int batch_idx) const {
+        int num_batch = data_.size();
+        int batch_size = data_[0].rows();
+        
+        // Ensure that the batch_idx is within the valid range
+        if (batch_idx < 0 || batch_idx >= num_batch) {
+            std::cerr << "Error: Batch index out of range!" << std::endl;
+            return Tensor(); // Return an empty tensor in case of invalid index
+        }
+
+        // Reshape the slice to (1, batch_size, features)
+        Tensor slice_data(1, batch_size, data_[0].cols());
+        
+        // Extract the data for the slice (1, batch_size, features)
+        slice_data.push_back(data_[batch_idx]);
+
+        return slice_data;
+    }
+
     // Add a new matrix to the tensor
     void push_back(const Eigen::MatrixXf& matrix) {
         data_.push_back(matrix);
