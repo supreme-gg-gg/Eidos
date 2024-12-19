@@ -1,4 +1,4 @@
-#include "../include/numeric_data_loader.h"
+#include "../include/preprocessors/numeric_data_loader.h"
 #include "../include/console.hpp"
 #include "../include/csvparser.h"
 #include <fstream>
@@ -111,8 +111,8 @@ NumericDataLoader& NumericDataLoader::center() {
     return *this;
 }
 
-NumericDataLoader& NumericDataLoader::scale(float coefficient) {
-    features_ *= coefficient;
+NumericDataLoader& NumericDataLoader::linear_transform(float a, float b) {
+    features_ = features_.array() * a + b;
     return *this;
 }
 
@@ -124,7 +124,7 @@ NumericDataLoader& NumericDataLoader::min_max_scale(int min_val, int max_val) {
     return *this;
 }
 
-NumericDataLoader& NumericDataLoader::removeOutliers(float z_threshold) {
+NumericDataLoader& NumericDataLoader::remove_outliers(float z_threshold) {
     // Calculate mean and standard deviation for each feature
     Eigen::VectorXf mean = features_.colwise().mean();
     Eigen::MatrixXf centered = features_.rowwise() - mean.transpose();
@@ -189,7 +189,7 @@ size_t NumericDataLoader::num_features() const {
     return features_.cols();
 }
 
-size_t NumericDataLoader::num_categories() const {
+size_t NumericDataLoader::num_classes() const {
     return oneHotMapping_.size();
 }
 

@@ -6,28 +6,13 @@
 #ifndef NUMERIC_DATA_LOADER_H
 #define NUMERIC_DATA_LOADER_H
 
+#include "data_loader.h"
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
 #include <iterator>
 #include <map>
-
-/**
- * @struct InputData
- * @brief Structure to hold training and testing data.
- */
-struct InputData {
-    Eigen::MatrixXf train_features; ///< Training features matrix
-    Eigen::MatrixXf train_labels;   ///< Training labels matrix
-    Eigen::MatrixXf test_features;  ///< Testing features matrix
-    Eigen::MatrixXf test_labels;    ///< Testing labels matrix
-};
-
-/**
- * @struct BatchInputData
- * @brief Placeholder structure for batch input data.
- */
-struct BatchInputData {};
+#include <variant>
 
 /**
  * @class NumericDataLoader
@@ -57,7 +42,9 @@ public:
      * @param trainToTestSplitRatio Ratio of training to testing data.
      * @return InputData structure containing split data.
      */
-    InputData train_test_split(float trainToTestSplitRatio = 0.8f);
+    std::variant<IndividualInputData<Eigen::MatrixXf, Eigen::MatrixXf>, 
+        BatchInputData<Eigen::MatrixXf, Eigen::MatrixXf>> 
+    train_test_split(float trainToTestSplitRatio = 0.8f, int batch_size = 1);
 
     /**
      * @brief Shuffles the data.
@@ -65,12 +52,7 @@ public:
      */
     NumericDataLoader& shuffle();
 
-    /**
-     * @brief Scales the data by a coefficient.
-     * @param coefficient Scaling coefficient.
-     * @return Reference to the current object fluently.
-     */
-    NumericDataLoader& scale(float coefficient = 1.0f);
+    NumericDataLoader& linear_transform(float a, float b);
 
     /**
      * @brief Centers the data around 0.
@@ -97,7 +79,7 @@ public:
      * @param z_threshold Z-score threshold for outlier removal.
      * @return Reference to the current object fluently.
      */
-    NumericDataLoader& removeOutliers(float z_threshold = 3.0);
+    NumericDataLoader& remove_outliers(float z_threshold = 3.0);
 
     /**
      * @brief Applies Principal Component Analysis (PCA) to the data.
@@ -119,10 +101,10 @@ public:
     size_t num_features() const;
 
     /**
-     * @brief Gets the number of categories in the labels.
-     * @return Number of categories.
+     * @brief Gets the number of classes in the labels.
+     * @return Number of classes.
      */
-    size_t num_categories() const;
+    size_t num_classes() const;
 
     /**
      * @brief Gets the shape of the data.
