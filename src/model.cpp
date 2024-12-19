@@ -72,7 +72,7 @@ void Model::optimize() const {
     }
 }
 
-void Model::Train(const Tensor& training_data, const Tensor& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer) {
+void Model::Train(const Tensor& training_data, const Tensor& training_labels, int epochs, Loss& loss_function, Optimizer* optimizer) {
     set_train();
     // Optimizer can either be set in the model or passed as an argument
     if (optimizer != nullptr) {
@@ -83,7 +83,7 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels, in
     }
 
     // Split the data into batches
-    int num_batches = training_data[0].rows() / batch_size;
+    int num_batches = training_data.depth();
     bool stop_training = false;
     Tensor inputs;
     Tensor targets;

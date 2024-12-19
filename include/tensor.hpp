@@ -131,13 +131,7 @@ public:
             return Tensor(); // Return an empty tensor in case of invalid index
         }
 
-        // Reshape the slice to (1, batch_size, features)
-        Tensor slice_data(1, batch_size, data_[0].cols());
-        
-        // Extract the data for the slice (1, batch_size, features)
-        slice_data.push_back(data_[batch_idx]);
-
-        return slice_data;
+        return Tensor({data_[batch_idx]});
     }
 
     // Add a new matrix to the tensor
