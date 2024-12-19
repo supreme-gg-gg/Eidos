@@ -2,6 +2,7 @@
 #define DENSE_LAYER_H
 
 #include "../layer.h"
+#include "../tensor.hpp"
 #include "../optimizer.h"
 #include <Eigen/Dense>
 
@@ -25,8 +26,8 @@ private:
 public:
     DenseLayer(int input_size, int output_size);
 
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+    Tensor forward(const Tensor& input) override;
+    Tensor backward(const Tensor& grad_output) override;
 
     bool has_weights() const override;
     bool has_bias() const override;

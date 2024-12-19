@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include "../layer.h"
 #include "../activation_fns.h"
+#include "../tensor.hpp"
 
 /**
  * @class RNNLayer
@@ -58,7 +59,7 @@ public:
      * @param input The input matrix to the RNN layer.
      * @return The output matrix after applying the RNN layer.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
+    Tensor forward(const Tensor& input) override;
 
     /**
      * @brief Performs the backward pass for the RNN layer.
@@ -70,7 +71,7 @@ public:
      * @param grad_output The gradient of the loss with respect to the output of the RNN layer.
      * @return The gradient of the loss with respect to the input of the RNN layer.
      */
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+    Tensor backward(const Tensor& grad_output) override;
 
     bool has_weights() const override { return true; }
     bool has_bias() const override { return true; }

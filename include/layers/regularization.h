@@ -32,14 +32,14 @@ public:
      * @param input Input matrix.
      * @return Output matrix after applying dropout.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
+    Tensor forward(const Tensor& input) override;
 
     /**
      * @brief Backward pass of the Dropout layer.
      * @param grad_output Gradient of the loss with respect to the output.
      * @return Gradient of the loss with respect to the input.
      */
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+    Tensor backward(const Tensor& grad_output) override;
 
     /**
      * @brief Set the training mode for the Dropout layer.
@@ -91,14 +91,14 @@ public:
      * @param input Input matrix.
      * @return Output matrix after applying batch normalization.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
+    Tensor forward(const Tensor& input) override;
 
     /**
      * @brief Backward pass of the BatchNorm layer.
      * @param grad_output Gradient of the loss with respect to the output.
      * @return Gradient of the loss with respect to the input.
      */
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+    Tensor backward(const Tensor& grad_output) override;
 
     /**
      * @brief Set the training mode for the BatchNorm layer.

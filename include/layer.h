@@ -2,6 +2,7 @@
 #define LAYER_H
 
 #include <Eigen/Dense>
+#include "tensor.hpp"
 
 /*
  * Abstract base class for a neural network layer
@@ -17,7 +18,7 @@ public:
      * @param input: The input matrix to the layer (typically activations from previous layer)
      * @return: The output matrix after applying the layer's transformation
     */
-    virtual Eigen::MatrixXf forward(const Eigen::MatrixXf& input) = 0;
+    virtual Tensor forward(const Tensor& input) = 0;
 
     /*
      * Pure virtual function to perform backward propagation on input.
@@ -26,7 +27,7 @@ public:
      * @param grad_output: The gradient of the loss function w.r.t. the output of this layer
      * @return: The gradient of the loss function w.r.t. the input of this layer
     */
-    virtual Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) = 0;
+    virtual Tensor backward(const Tensor& grad_output) = 0;
 
     // Virtual functions that can be overridden in derived classes but are not required
     // The most derived version of the function will be called

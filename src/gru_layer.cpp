@@ -33,12 +33,11 @@ GRULayer::GRULayer(int input_size, int hidden_size, int output_size, Activation*
     hidden_state = Eigen::VectorXf::Zero(hidden_size);
 }
 
-Eigen::MatrixXf GRULayer::forward(const Eigen::MatrixXf& input) {
-    int T = input.rows();
-    int D = input.cols();
+Tensor GRULayer::forward(const Tensor& input) {
+    this->input_sequence = input.getSingleMatrix();
+    int T = input_sequence.rows();
+    int D = input_sequence.cols();
     int H = hidden_state.rows();
-
-    this->input_sequence = input;  // Store input sequence for backpropagation
 
     // Initialize hidden states to store all hidden states during the sequence
     hidden_states.resize(T + 1, Eigen::VectorXf::Zero(H));
@@ -53,7 +52,7 @@ Eigen::MatrixXf GRULayer::forward(const Eigen::MatrixXf& input) {
     Eigen::MatrixXf outputs = Eigen::MatrixXf::Zero(T, weights[6].rows());
 
     for (int i = 0; i < T; ++i) {
-        Eigen::VectorXf x_t = input.row(i);
+        Eigen::VectorXf x_t = input_sequence.row(i);
 
         // Reset gate: r_t = σ(W_r * x_t + U_r * h_{t-1} + b_r)
         Eigen::VectorXf r_t = activation->forward(weights[0] * x_t + weights[1] * hidden_states[i] + biases[0]);
@@ -80,16 +79,18 @@ Eigen::MatrixXf GRULayer::forward(const Eigen::MatrixXf& input) {
     this->hidden_state = hidden_states[T];
 
     if (output_sequence) {
-        return outputs;
+        return Tensor(outputs);
     } else {
-        return hidden_states[T].transpose();
+        return Tensor(hidden_states[T].transpose());
     }
 }
 
-Eigen::MatrixXf GRULayer::backward(const Eigen::MatrixXf& grad_output_sequence) {
+Tensor GRULayer::backward(const Tensor& grad_output_sequence) {
     int T = input_sequence.rows();
     int D = input_sequence.cols();
     int H = hidden_state.rows();
+
+    Eigen::MatrixXf grad_output_sequence_mat = grad_output_sequence.getSingleMatrix();
 
     // Zero out gradients for weights and biases
     for (int i = 0; i < 7; ++i) {
@@ -105,7 +106,7 @@ Eigen::MatrixXf GRULayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
     // Gradient of final output (if output_sequence is false)
     // This is the gradient of the loss with respect to the final hidden state
     if (!output_sequence) {
-        grad_h_next = grad_output_sequence.transpose();
+        grad_h_next = grad_output_sequence_mat.transpose();
     }
 
     // Iterate backwards through the sequence
@@ -117,7 +118,7 @@ Eigen::MatrixXf GRULayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
         Eigen::VectorXf h_prev = (t > 0) ? hidden_states[t] : hidden_state;
 
         Eigen::VectorXf grad_h_t = grad_h_next; // take hidden state grad from the last time step
-        grad_h_t += weights[6].transpose() * grad_output_sequence.row(t).transpose(); // add gradient from output layer
+        grad_h_t += weights[6].transpose() * grad_output_sequence_mat.row(t).transpose(); // add gradient from output layer
 
         // reset gate
         Eigen::VectorXf grad_r_t = grad_h_t.array() * (h_t_candidate.array() - h_prev.array()) * (activation->backward(r_t)).array();
@@ -147,5 +148,5 @@ Eigen::MatrixXf GRULayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
     }
 
     // Gradient with respect to initial hidden state
-    return grad_h_next;
+    return Tensor(grad_h_next);
 }

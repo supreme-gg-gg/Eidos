@@ -65,10 +65,10 @@ public:
     GRULayer(int input_size, int hidden_size, int output_size, Activation* activation, Activation* gate_activation, bool output_sequence = true);
 
     // Forward pass through the GRU layer
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override;
+    Tensor forward(const Tensor& input) override;
 
     // Backward pass for the GRU layer
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+    Tensor backward(const Tensor& grad_output) override;
 
     // Get the name of the layer
     std::string get_name() const override {

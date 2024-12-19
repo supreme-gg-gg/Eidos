@@ -12,6 +12,9 @@
  * 
  * The FlattenLayer class inherits from the Layer class and implements a layer that flattens the input.
  * It includes methods for forward and backward passes.
+ * 
+ * @param input_shape: The dimensions of the input tensor (e.g., {Channels, Height, Width})
+ * @param output_shape: The dimensions of the flattened output (e.g., {Channels, Flattened_Size})
  */
 class FlattenLayer : public Layer {
 private:
@@ -19,25 +22,55 @@ private:
     std::vector<int> output_shape; // Flattened dimensions (e.g., {Channels, Flattened_Size})
 
 public:
-    // Constructor that sets input and output dimensions
+    /**
+     * @brief Constructs a FlattenLayer with the specified input and output shapes.
+     * 
+     * @param input_shape A constant reference to a vector representing the shape of the input tensor.
+     * @param output_shape A constant reference to a vector representing the shape of the output tensor.
+     */
     FlattenLayer(const std::vector<int>& input_shape, const std::vector<int>& output_shape);
 
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input) override {
-        throw std::runtime_error("Flatten Layer does not support forward pass with single input matrix. Please provide a tensor instead.");
-    }
+    /**
+     * @brief Applies a forward transformation to flatten the input matrices.
+     * 
+     * This function takes a vector of Eigen::MatrixXf objects as input and 
+     * performs a forward transformation to flatten them into a single 
+     * Eigen::MatrixXf object.
+     * 
+     * @param input A vector of Eigen::MatrixXf objects representing the input matrices.
+     * @return Eigen::MatrixXf The resulting flattened matrix.
+     */
+    Tensor forward(const Tensor& input) override;
 
-    Eigen::MatrixXf backward(const Eigen::MatrixXf& grad) override {
-        throw std::runtime_error("Flatten Layer does not support backward pass with single input matrix. Please provide a tensor instead.");
-    }
+    /**
+     * @brief Performs the backward transformation for the flatten layer.
+     *
+     * This function takes the gradient of the loss with respect to the output of the flatten layer
+     * and transforms it back to the shape of the input to the flatten layer.
+     *
+     * @param grad The gradient of the loss with respect to the output of the flatten layer.
+     * @return A vector of Eigen::MatrixXf representing the transformed gradients.
+     */
+    Tensor backward(const Tensor& grad) override;
 
-    // Forward pass: Flatten 3D tensor into 2D matrix
-    Eigen::MatrixXf forward(const std::vector<Eigen::MatrixXf>& input);
-
-    // Backward pass: Reshape gradients back into 3D tensor
-    std::vector<Eigen::MatrixXf> backward(const Eigen::MatrixXf& grad, bool flag);
-
-    // Utility functions
+    /**
+     * @brief Get the shape of the input tensor.
+     * 
+     * This function returns a constant reference to a vector containing the dimensions
+     * of the input tensor. The dimensions are stored in the order of the tensor's axes.
+     * 
+     * @return const std::vector<int>& A constant reference to the vector representing the input shape.
+     */
     const std::vector<int>& InputShape() const { return input_shape; }
+
+    /**
+     * @brief Get the output shape of the flatten layer.
+     * 
+     * This function returns a constant reference to the vector representing
+     * the shape of the output tensor after the flatten operation.
+     * 
+     * @return const std::vector<int>& A constant reference to the output shape vector.
+     */
     const std::vector<int>& OutputShape() const { return output_shape; }
 };
 

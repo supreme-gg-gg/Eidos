@@ -1,4 +1,5 @@
 #include "../include/layers/flatten_layer.h"
+#include "../tensor.hpp"
 #include <stdexcept>
 #include <Eigen/Dense>
 
@@ -19,42 +20,53 @@ FlattenLayer::FlattenLayer(const std::vector<int>& input_shape, const std::vecto
     }
 }
 
-Eigen::MatrixXf FlattenLayer::forward(const std::vector<Eigen::MatrixXf>& input) {
-    if (input.size() != input_shape[0]) {
-        throw std::invalid_argument("Input tensor size does not match expected Channels.");
+Tensor FlattenLayer::forward(const Tensor& input) {
+    // Validate the input tensor shape
+    if (input.depth() != input_shape[0]) {
+        throw std::invalid_argument("Input tensor depth does not match expected number of channels.");
     }
 
-    int batch_size = input[0].rows();
-    int flattened_size = this->output_shape[1];
-    Eigen::MatrixXf output(batch_size, flattened_size);
+    int batch_size = this->output_shape[0];             // Number of rows in each matrix
+    int flattened_size = this->output_shape[1];  // Flattened size (b * c)
 
-    for (int i = 0; i < this->output_shape[0]; ++i) {
+    Tensor output(1, batch_size, flattened_size);   // Create output tensor with appropriate shape
+
+    // Flatten each matrix in the input tensor
+    for (int i = 0; i < batch_size; ++i) {
         Eigen::VectorXf flattened(flattened_size);
         int offset = 0;
-        for (int channel = 0; channel < input.size(); ++channel) {
+
+        for (size_t channel = 0; channel < input.depth(); ++channel) {
             flattened.segment(offset, input[channel].cols()) = input[channel].row(i);
             offset += input[channel].cols();
         }
-        output.row(i) = flattened.transpose();
+        output[0].row(i) = flattened.transpose();
     }
+
     return output;
 }
 
-std::vector<Eigen::MatrixXf> FlattenLayer::backward(const Eigen::MatrixXf& grad, bool flag=false) {
-    int batch_size = grad.rows();
-    int flattened_size = grad.cols();
+Tensor FlattenLayer::backward(const Tensor& grad) {
+    int batch_size = grad[0].rows();             // Batch size from gradient tensor
+    int flattened_size = grad[0].cols();         // Flattened size from gradient tensor
+
+    // Validate gradient tensor shape
     if (flattened_size != output_shape[1]) {
         throw std::invalid_argument("Gradient size does not match expected flattened size.");
     }
 
-    std::vector<Eigen::MatrixXf> reshaped_grad(input_shape[0], Eigen::MatrixXf::Zero(batch_size, input_shape[1] * input_shape[2]));
+    // Create reshaped gradient tensor with depth and each matrix having rows = batch_size and cols = input_shape[1] * input_shape[2]
+    Tensor reshaped_grad(input_shape[0], input_shape[1], input_shape[2]);
 
+    // Unpack the gradient tensor into its original shape
     for (int i = 0; i < batch_size; ++i) {
         int offset = 0;
+
         for (int channel = 0; channel < input_shape[0]; ++channel) {
-            reshaped_grad[channel].row(i) = grad.row(i).segment(offset, input_shape[1] * input_shape[2]);
+            reshaped_grad[channel].row(i) = grad[0].segment(offset, input_shape[1] * input_shape[2]);
             offset += input_shape[1] * input_shape[2];
         }
     }
+
     return reshaped_grad;
 }

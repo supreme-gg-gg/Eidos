@@ -1,21 +1,24 @@
 #include "../include/layers/regularization.h"
+#include "../include/tensor.hpp"
 #include <Eigen/Dense>
 
 Dropout::Dropout(float probability) : probability(probability) {}
 
-Eigen::MatrixXf Dropout::forward(const Eigen::MatrixXf& input) {
+Tensor Dropout::forward(const Tensor& input) {
+
+    Eigen::MatrixXf input_mat = input.getSingleMatrix();
 
     if (!training) {
-            return input; // No dropout during inference
-        }
-        // Generate random mask and apply dropout
-        mask = (Eigen::MatrixXf::Random(input.rows(), input.cols()).array() > probability).cast<float>();
-        return input.array() * mask.array() / (1.0f - probability);
+        return input; // No dropout during inference
+    }
+    // Generate random mask and apply dropout
+    mask = (Eigen::MatrixXf::Random(input_mat.rows(), input_mat.cols()).array() > probability).cast<float>();
+    return Tensor(input_mat.array() * mask.array() / (1.0f - probability));
 }
 
-Eigen::MatrixXf Dropout::backward(const Eigen::MatrixXf& grad_output) {
+Tensor Dropout::backward(const Tensor& grad_output) {
     // Backprop through only the active nodes
-    return mask.array() * grad_output.array();
+    return Tensor(mask.array() * grad_output.getSingleMatrix().array());
 }
 
 void Dropout::set_training(bool training_) {
@@ -35,15 +38,18 @@ void BatchNorm::set_training(bool training_) {
     training = training_;
 }
 
-Eigen::MatrixXf BatchNorm::forward(const Eigen::MatrixXf& input) {
+Tensor BatchNorm::forward(const Tensor& input) {
+
+    Eigen::MatrixXf input_mat = input.getSingleMatrix();
+
     // Compute mean across columns (features)
-    mean = input.colwise().mean();
+    mean = input_mat.colwise().mean();
     
     // Center the input
-    centered_input = input.rowwise() - mean.transpose();
+    centered_input = input_mat.rowwise() - mean.transpose();
     
     // Compute variance
-    variance = (centered_input.array().square().colwise().sum()) / (input.rows() - 1);
+    variance = (centered_input.array().square().colwise().sum()) / (input_mat.rows() - 1);
     
     if (training) {
         // Update running statistics
@@ -62,18 +68,21 @@ Eigen::MatrixXf BatchNorm::forward(const Eigen::MatrixXf& input) {
     // Scale and shift 
     Eigen::MatrixXf output = (normalized_input.array().rowwise() * gamma.row(0).array()).rowwise() + beta.transpose().array();
     
-    return output;
+    return Tensor(output);
 }
 
-Eigen::MatrixXf BatchNorm::backward(const Eigen::MatrixXf& grad_output) {
-    int m = grad_output.rows();
+Tensor BatchNorm::backward(const Tensor& grad_output) {
+
+    Eigen::MatrixXf grad_output_mat = grad_output.getSingleMatrix();
+
+    int m = grad_output_mat.rows();
     
     // Compute gradients for gamma and beta
-    grad_gamma = (grad_output.array() * normalized_input.array()).colwise().sum();
-    grad_beta = grad_output.colwise().sum();
+    grad_gamma = (grad_output_mat.array() * normalized_input.array()).colwise().sum();
+    grad_beta = grad_output_mat.colwise().sum();
     
     // Compute gradient with respect to normalized input
-    Eigen::MatrixXf grad_normalized = grad_output.array().rowwise() * gamma.row(0).array();
+    Eigen::MatrixXf grad_normalized = grad_output_mat.array().rowwise() * gamma.row(0).array();
     
     // Compute gradient with respect to variance
     Eigen::MatrixXf grad_variance = (grad_normalized.array() * centered_input.array()).colwise().sum() * 
@@ -90,5 +99,5 @@ Eigen::MatrixXf BatchNorm::backward(const Eigen::MatrixXf& grad_output) {
         centered_input.array().rowwise() * grad_variance.row(0).array() * 2.0f / m + 
         (grad_mean.array() / m).replicate(m, 1);
     
-    return grad_input;
+    return Tensor(grad_input);
 }
