@@ -3,6 +3,14 @@
 
 #include <Eigen/Dense>
 
+/**
+ * @class Loss
+ * @brief Abstract base class for loss functions.
+ * 
+ * The Loss class is an abstract base class for loss functions used in training
+ * machine learning models. It provides methods for computing the loss and its
+ * gradient with respect to the model's predictions.
+ */
 class Loss {
 public:
     virtual ~Loss() = default;

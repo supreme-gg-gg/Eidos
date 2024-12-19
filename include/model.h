@@ -11,6 +11,7 @@
 #include "optimizer.h"
 #include "loss.h"
 #include "callback.h"
+#include "tensor.hpp"
 
 /**
  * @class Model
@@ -61,7 +62,7 @@ public:
      * and m is the number of features.
      * @return Eigen::MatrixXf The output matrix after the forward pass.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input);
+    Tensor forward(const Tensor& input);
 
     /**
      * @brief Performs the backward pass of the model, computing the gradient of the loss with respect to the model's parameters.
@@ -71,7 +72,7 @@ public:
      * 
      * @param grad_output The gradient of the loss with respect to the output of the model. This is a matrix of the same shape as the model's output.
      */
-    void backward(const Eigen::MatrixXf& grad_output);
+    void backward(const Tensor& grad_output);
 
     /**
      * @brief Optimizes the model parameters.
