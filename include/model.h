@@ -119,16 +119,16 @@ public:
      * @param loss_function The loss function to be used during training.
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
-    void Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer=nullptr);
+    void Train(const Tensor& training_data, const Tensor& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer=nullptr);
 
     /**
      * @brief Tests the model using the provided testing data and labels.
      * 
-     * @param testing_data A matrix containing the testing data.
-     * @param testing_labels A matrix containing the testing labels.
+     * @param testing_data A tensor containing the testing data.
+     * @param testing_labels A tensor containing the testing labels.
      * @param loss_function The loss function to evaluate the model's performance.
      */
-    void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
+    void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function);
 
     /**
      * @brief Retrieves a pointer to the layer at the specified index.

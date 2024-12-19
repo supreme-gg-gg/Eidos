@@ -72,8 +72,7 @@ void Model::optimize() const {
     }
 }
 
-// This does not (yet) really accept tensors
-void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer) {
+void Model::Train(const Tensor& training_data, const Tensor& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer) {
     set_train();
     // Optimizer can either be set in the model or passed as an argument
     if (optimizer != nullptr) {
@@ -84,26 +83,25 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
     }
 
     // Split the data into batches
-    int num_batches = training_data.rows() / batch_size;
+    int num_batches = training_data[0].rows() / batch_size;
     bool stop_training = false;
-    Eigen::MatrixXf inputs;
-    Eigen::MatrixXf targets;
+    Tensor inputs;
+    Tensor targets;
     for (int epoch = 0; epoch < epochs; ++epoch) {
 
         // Handle batches
         float total_loss = 0.0f;
         for (int i = 0; i < num_batches; ++i) {
             // Get the current batch
-            inputs = training_data.middleRows(i * batch_size, batch_size);
-            targets = training_labels.middleRows(i * batch_size, batch_size);
+            inputs = training_data.slice(i);
+            targets = training_labels.slice(i);
             // Forward pass
-            Tensor tensor_inputs = Tensor(inputs);
-            Tensor outputs = forward(tensor_inputs);
-            float loss = loss_function.forward(outputs.getSingleMatrix(), targets);
+            Tensor outputs = forward(inputs);
+            float loss = loss_function.forward(outputs, targets);
             total_loss += loss;
 
             // Backward pass
-            Tensor grad_loss = Tensor(loss_function.backward());
+            Tensor grad_loss = loss_function.backward();
             backward(grad_loss);
             // Optimize
             optimize();
@@ -132,10 +130,10 @@ void Model::Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& t
 }
 
 // TOOD: This does not really accept true tensors, only matrices
-void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function) {
+void Model::Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function) {
     set_inference();
-    Tensor outputs = forward(Tensor(testing_data));
-    float loss = loss_function.forward(outputs.getSingleMatrix(), testing_labels);
+    Tensor outputs = forward(testing_data);
+    float loss = loss_function.forward(outputs, testing_labels);
     int correct_predictions = 0;
     for (int i = 0; i < outputs[0].rows(); ++i) {
         // Implement argmax manually
@@ -143,7 +141,7 @@ void Model::Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& tes
         outputs[0].row(i).maxCoeff(&predicted_index);
         
         Eigen::Index actual_index;
-        testing_labels.row(i).maxCoeff(&actual_index);
+        testing_labels[0].row(i).maxCoeff(&actual_index);
         
         // Compare if the predicted and actual labels match
         if (predicted_index == actual_index) {
