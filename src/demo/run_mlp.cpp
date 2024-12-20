@@ -10,20 +10,30 @@
 #include <Eigen/Dense>
 
 int main() {
-    // Sample data for MLP training
+    // Sample data for MLP training with batching
     int num_samples = 100;   // Number of samples
     int input_size = 20;     // Input feature size
     int output_size = 5;     // Number of classes (one-hot encoded targets)
+    int batch_size = 10;     // Batch size
+    int num_batches = num_samples / batch_size; // Number of batches
 
-    // Random initialization of inputs and targets
-    Eigen::MatrixXf inputs = Eigen::MatrixXf::Random(num_samples, input_size);
-    Eigen::MatrixXf one_hot_targets(num_samples, output_size);
+    Tensor input_tensor(num_batches, batch_size, input_size);
+    Eigen::MatrixXf input_data = Eigen::MatrixXf::Random(num_samples, input_size);
+
+    Tensor one_hot_targets(num_batches, batch_size, output_size);
+    Eigen::MatrixXf output_labels = Eigen::MatrixXf::Zero(num_samples, output_size);
     
     // Simulate one-hot encoded targets
     for (int i = 0; i < num_samples; ++i) {
-        one_hot_targets.row(i).setZero();
+        output_labels.row(i).setZero();
         int target_class = rand() % output_size;
-        one_hot_targets(i, target_class) = 1.0;
+        output_labels(i, target_class) = 1.0;
+    }
+
+    // Reshape the tensors to match the batch size
+    for (int b = 0; b < num_batches; ++b) {
+        input_tensor[b] = input_data.block(b * batch_size, 0, batch_size, input_size);
+        one_hot_targets[b] = output_labels.block(b * batch_size, 0, batch_size, output_size);
     }
 
     // Model setup
@@ -37,33 +47,41 @@ int main() {
     CrossEntropyLoss loss_fn;
     model.set_optimizer(optimizer);
 
-    Debugger debugger;
-    debugger.track_layer(model.get_layer(2));
-
-    model.add_callback(new EarlyStopping(5));
-    model.Train(inputs, one_hot_targets, 50, 32, loss_fn);
-
     // Training loop
     // for (int epoch = 0; epoch < 10; ++epoch) {
 
-    //     debugger.save_previous_weights();
-
     //     // Forward pass
-    //     Eigen::MatrixXf output = model.forward(inputs);
+    //     Tensor output = model.forward(input_tensor);
 
     //     // Compute loss
     //     float loss = loss_fn.forward(output, one_hot_targets);
     //     std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
 
     //     // Backward pass
-    //     Eigen::MatrixXf grad = loss_fn.backward();  // Backprop through loss function
+    //     Tensor grad = loss_fn.backward();  // Backprop through loss function
     //     model.backward(grad);                      // Backprop through layers
 
     //     // Update weights
     //     model.optimize();
-
-    //     debugger.print_weight_change_norms();
     // }
+
+    // model.add_callback(new EarlyStopping(5));
+    model.Train(input_tensor, one_hot_targets, 50, loss_fn);
+
+    // Sample testing data
+    Eigen::MatrixXf test_input_data = Eigen::MatrixXf::Random(batch_size, input_size);
+    Tensor test_input_tensor = Tensor(test_input_data);
+
+    Eigen::MatrixXf test_output_labels = Eigen::MatrixXf::Zero(batch_size, output_size);
+    for (int i = 0; i < batch_size; ++i) {
+        test_output_labels.row(i).setZero();
+        int target_class = rand() % output_size;
+        test_output_labels(i, target_class) = 1.0;
+    }
+    Tensor test_one_hot_targets = Tensor(test_output_labels);
+
+    // Testing
+    model.Test(test_input_tensor, test_one_hot_targets, loss_fn);
 
     return 0;
 }

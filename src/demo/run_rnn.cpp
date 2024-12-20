@@ -22,9 +22,13 @@ int main() {
         one_hot_targets(t, target_class) = 1.0;  // Set the correct class
     }
 
-    // Model setup (No batching support)
+    // Convert Eigen matrices to Tensor objects
+    // You can create batches of inputs and targets for training
+    Tensor input_tensor = Tensor(inputs);
+    Tensor one_hot_targets_tensor = Tensor(one_hot_targets);
+
     Model model;
-    model.Add(new RNNLayer(30, 64, 10, new Sigmoid(), true));  // RNN layer: input size = 20, hidden size = 32, output size = 5
+    model.Add(new RNNLayer(30, 64, 10, new Sigmoid(), true));  // RNN layer: input size = 30, hidden size = 64, output size = 10
 
     Adam optimizer(0.001);
     CrossEntropyLoss loss_fn;
@@ -43,14 +47,14 @@ int main() {
         debugger.save_previous_weights();
 
         // Forward pass
-        Eigen::MatrixXf output = model.forward(inputs);
+        Tensor output = model.forward(input_tensor);
 
         // Compute loss
-        float loss = loss_fn.forward(output, one_hot_targets);
+        float loss = loss_fn.forward(output, one_hot_targets_tensor);
         std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
 
         // Backward pass
-        Eigen::MatrixXf grad = loss_fn.backward();  // Backprop through loss function
+        Tensor grad = loss_fn.backward();  // Backprop through loss function
         model.backward(grad);                      // Backprop through the model layers
 
         // Update weights

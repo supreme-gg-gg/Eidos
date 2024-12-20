@@ -6,15 +6,16 @@ DenseLayer::DenseLayer(int input_size, int output_size)
       grad_weights(Eigen::MatrixXf::Zero(input_size, output_size)),
       grad_bias(Eigen::VectorXf::Zero(output_size)) {}
 
-Eigen::MatrixXf DenseLayer::forward(const Eigen::MatrixXf& input) {
-    this->input = input;
-    return (input * weights).rowwise() + bias.transpose(); // Row wise bias addition
+Tensor DenseLayer::forward(const Tensor& input) {
+    this->input = input.getSingleMatrix();
+    return Tensor((this->input * weights).rowwise() + bias.transpose()); // Row wise bias addition
 }
 
-Eigen::MatrixXf DenseLayer::backward(const Eigen::MatrixXf& grad_output) {
-    grad_weights = input.transpose() * grad_output; // dL/dW = X^T * dL/dY
-    grad_bias = grad_output.colwise().sum(); // dL/db = sum(dL/dY)
-    return grad_output * weights.transpose(); // dL/dX = dL/dY * W^T
+Tensor DenseLayer::backward(const Tensor& grad_output) {
+    Eigen::MatrixXf grad_output_mat = grad_output.getSingleMatrix();
+    grad_weights = input.transpose() * grad_output_mat; // dL/dW = X^T * dL/dY
+    grad_bias = grad_output_mat.colwise().sum(); // dL/db = sum(dL/dY)
+    return Tensor(grad_output_mat * weights.transpose()); // dL/dX = dL/dY * W^T
 }
 
 bool DenseLayer::has_weights() const { return true; }

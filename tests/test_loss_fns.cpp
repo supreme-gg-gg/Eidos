@@ -16,7 +16,7 @@ TEST(LossTest, CategoricalCrossEntropyLoss_ComputesCorrectly) {
                 0, 0, 0, 1;
 
     // Compute the loss for the new test case
-    float loss_value = loss.forward(predictions, targets);
+    float loss_value = loss.forwardMatrix(predictions, targets);
 
     // Check if loss is computed correctly for the new test case
     EXPECT_NEAR(loss_value, 0.71355817782, 1e-6);
@@ -34,7 +34,7 @@ TEST(LossTest, CrossEntropyLoss_ComputesCorrectly) {
     targets << 0, 0, 0, 1,
                0, 0, 1, 0;
     
-    float loss_value = loss.forward(logits, targets);
+    float loss_value = loss.forwardMatrix(logits, targets);
     EXPECT_NEAR(loss_value, 0.998563, 1e-6);
 }
 
@@ -47,8 +47,8 @@ TEST(LossTest, CrossEntropyLoss_Backward) {
     targets << 0, 0, 0, 1,
                0, 0, 1, 0;
 
-    float computed_loss = loss.forward(logits, targets);
-    Eigen::MatrixXf grad = loss.backward();
+    float computed_loss = loss.forwardMatrix(logits, targets);
+    Eigen::MatrixXf grad = loss.backwardMatrix();
     ASSERT_EQ(grad.rows(), 2);
     ASSERT_EQ(grad.cols(), 4);
 }
@@ -70,7 +70,7 @@ TEST(LossTest, MSELoss_ComputesCorrectly) {
     MSELoss loss;
     
     // Compute the loss
-    float loss_value = loss.forward(predictions, targets);
+    float loss_value = loss.forwardMatrix(predictions, targets);
     
     // Check if loss is computed correctly (here you can check against expected value)
     EXPECT_FLOAT_EQ(loss_value, 0.006667);
@@ -87,10 +87,10 @@ TEST(LossTest, MSELoss_ForwardAndBackward) {
                0.0, 0.0,
                0.0, 1.0;
 
-    float computed_loss = loss.forward(predictions, targets);
+    float computed_loss = loss.forwardMatrix(predictions, targets);
     ASSERT_NEAR(computed_loss, 0.1317, 1e-4); // Validate expected loss value
 
-    Eigen::MatrixXf grad = loss.backward();
+    Eigen::MatrixXf grad = loss.backwardMatrix();
     ASSERT_EQ(grad.rows(), 3);
     ASSERT_EQ(grad.cols(), 2);
 }

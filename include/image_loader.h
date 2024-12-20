@@ -59,7 +59,9 @@ public:
      * @param features A vector to store the loaded feature matrices.
      * @param labels A vector to store the corresponding labels.
      */
-    void load_data(const std::string& filePath, std::vector<std::vector<Eigen::MatrixXf>>& features, std::vector<std::string>& labels) override;
+    void load_data(const std::string& filePath, 
+        std::vector<std::vector<Eigen::MatrixXf>>& features, 
+        std::vector<std::string>& labels) override;
 
     /**
      * @brief Splits the dataset into training and testing sets based on the given ratio.
@@ -72,7 +74,13 @@ public:
      * @param test_labels A reference to a vector where the testing labels will be stored.
      * @param trainToTestSplitRatio A float representing the ratio of the dataset to be used for training. The remaining part will be used for testing.
      */
-    void split_data(const std::vector<std::vector<Eigen::MatrixXf>>& features, const std::vector<std::string>& labels, std::vector<std::vector<Eigen::MatrixXf>>& train_features, std::vector<std::string>& train_labels, std::vector<std::vector<Eigen::MatrixXf>>& test_features, std::vector<std::string>& test_labels, float trainToTestSplitRatio);
+    void split_data(const std::vector<std::vector<Eigen::MatrixXf>>& features, 
+        const std::vector<std::string>& labels, 
+        std::vector<std::vector<Eigen::MatrixXf>>& train_features, 
+        std::vector<std::string>& train_labels, 
+        std::vector<std::vector<Eigen::MatrixXf>>& test_features, 
+        std::vector<std::string>& test_labels, 
+        float trainToTestSplitRatio) override;
 
     /**
      * @brief Converts string labels to one-hot encoded labels.
@@ -86,7 +94,9 @@ public:
      * @param one_hot_labels A vector to store the resulting one-hot encoded labels.
      * @param mapping A key-value object used to map string labels to their corresponding one-hot encoded values.
      */
-    void convert_to_one_hot(const std::vector<std::string>& labels, std::vector<Eigen::MatrixXf>& one_hot_labels, const std::map<std::string, int>& mapping) override ;
+    void convert_to_one_hot(const std::vector<std::string>& labels, 
+        std::vector<Eigen::MatrixXf>& one_hot_labels, 
+        const std::map<std::string, int>& mapping) override ;
 };
 
 #endif // IMAGE_LOADER_H
