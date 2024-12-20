@@ -112,6 +112,10 @@ public:
     /**
      * @brief Trains the model using the provided training data and labels.
      * 
+     * @warning This does not support batched images (i.e. 4D tensors). 3D tensor inputs are
+     * assumed to be a batch of 2D inputs. This will result in unexpected behavior if the
+     * input tensor is not a batch of 2D inputs.
+     * 
      * @param training_data A matrix containing the training data.
      * @param training_labels A matrix containing the training labels.
      * @param epochs The number of epochs to train the model.
@@ -122,6 +126,8 @@ public:
 
     /**
      * @brief Tests the model using the provided testing data and labels.
+     * 
+     * @note This assumes that the data is not batched for training.
      * 
      * @param testing_data A tensor containing the testing data.
      * @param testing_labels A tensor containing the testing labels.

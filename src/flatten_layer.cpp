@@ -48,10 +48,16 @@ Tensor FlattenLayer::backward(const Tensor& grad_output) {
 
     Tensor grad_input(c, h, w);
 
-    size_t idx = 0;
+    // Reshape the gradient for each channel
     for (int i = 0; i < c; ++i) {
-        Eigen::MatrixXf matrix = grad_output.getSingleMatrix().block(i * h, 0, h, w);  // Extract the gradient channel
-        grad_input[i] = matrix.transpose().reshaped(h, w);  // Reshape the gradient to match the input shape
+        // Extract the gradient block corresponding to one channel
+        Eigen::MatrixXf matrix = grad_data.block(0, i * h * w, 1, h * w);
+        
+        // Reshape the extracted matrix into (h, w) shape
+        Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>> reshaped_matrix(matrix.data(), h, w);
+
+        // Store reshaped gradient into the grad_input tensor
+        grad_input[i] = reshaped_matrix;
     }
 
     // Return the reshaped gradient as a tensor
