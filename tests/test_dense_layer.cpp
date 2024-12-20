@@ -8,9 +8,9 @@ TEST(DenseLayerTest, ForwardPassCorrectShape) {
     Eigen::MatrixXf inputs(3, 10); // 3 samples, 10 features each
     inputs.setRandom();
 
-    Eigen::MatrixXf outputs = layer.forward(inputs);
-    ASSERT_EQ(outputs.rows(), 3);
-    ASSERT_EQ(outputs.cols(), 5);
+    Tensor outputs = layer.forward(Tensor(inputs));
+    ASSERT_EQ(outputs.getSingleMatrix().rows(), 3);
+    ASSERT_EQ(outputs.getSingleMatrix().cols(), 5);
 }
 
 TEST(DenseLayerTest, BackwardPassCorrectShapes) {
@@ -20,8 +20,9 @@ TEST(DenseLayerTest, BackwardPassCorrectShapes) {
     inputs.setRandom();
     grad_output.setRandom();
 
-    layer.forward(inputs);
-    Eigen::MatrixXf grad_input = layer.backward(grad_output);
+    layer.forward(Tensor(inputs));
+    Tensor grad_input_tensor = layer.backward(Tensor(grad_output));
+    Eigen::MatrixXf grad_input = grad_input_tensor.getSingleMatrix();
 
     // Verify gradient shapes
     ASSERT_EQ(grad_input.rows(), 3); // Same as input features
