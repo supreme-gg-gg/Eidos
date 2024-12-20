@@ -27,12 +27,14 @@ RNNLayer::RNNLayer(int input_size, int hidden_size, int output_size, Activation*
     hidden_state = Eigen::VectorXf::Zero(hidden_size);
 }
 
-Eigen::MatrixXf RNNLayer::forward(const Eigen::MatrixXf& input_sequence) {
-    int T = input_sequence.rows();  // Sequence length
-    int D = input_sequence.cols();  // Input size
+Tensor RNNLayer::forward(const Tensor& input_sequence) {
+
+    this->input_sequence = input_sequence.getSingleMatrix();  // Store input sequence for backpropagation
+
+    int T = this->input_sequence.rows();  // Sequence length
+    int D = this->input_sequence.cols();  // Input size
     int H = hidden_state.rows();    // Hidden size
 
-    this->input_sequence = input_sequence;  // Store input sequence for backpropagation
 
     // Pre activations for gradient computation
     this->pre_activations.resize(T, Eigen::VectorXf::Zero(H));
@@ -45,7 +47,7 @@ Eigen::MatrixXf RNNLayer::forward(const Eigen::MatrixXf& input_sequence) {
     Eigen::MatrixXf outputs = Eigen::MatrixXf::Zero(T, weights[2].rows());  
 
     for (int t = 0; t < T; ++t) {
-        Eigen::VectorXf x_t = input_sequence.row(t);
+        Eigen::VectorXf x_t = this->input_sequence.row(t);
         
         // Compute pre-activation and store it
         Eigen::VectorXf pre_activation = weights[0] * x_t + weights[1] * hidden_states[t] + biases[0];
@@ -65,16 +67,19 @@ Eigen::MatrixXf RNNLayer::forward(const Eigen::MatrixXf& input_sequence) {
     hidden_state = hidden_states[T];
 
     if (output_sequence) {
-        return outputs; // Return output sequence
+        return Tensor(outputs); // Return output sequence
     } else {
         // If output_sequence is false, return the last hidden state
-        return hidden_states[T];
+        return Tensor(hidden_states[T]);
     }
 }
 
 // Backward pass
-Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) {
-    int T = grad_output_sequence.rows();  // Sequence length
+Tensor RNNLayer::backward(const Tensor& grad_output_sequence) {
+
+    Eigen::MatrixXf grad_output_mat = grad_output_sequence.getSingleMatrix();
+
+    int T = grad_output_mat.rows();  // Sequence length
     int H = hidden_state.rows();          // Hidden size
 
     grad_weights[0].setZero();  // W_h
@@ -86,7 +91,7 @@ Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
     Eigen::MatrixXf grad_h_next = Eigen::MatrixXf::Zero(H, 1);  // Gradient of h_{t+1}
 
     for (int t = T - 1; t >= 0; --t) {
-        Eigen::VectorXf grad_o_t = grad_output_sequence.row(t).transpose();
+        Eigen::VectorXf grad_o_t = grad_output_mat.row(t).transpose();
 
         if (output_sequence) {
             grad_weights[2] += grad_o_t * hidden_states[t + 1].transpose();
@@ -103,5 +108,5 @@ Eigen::MatrixXf RNNLayer::backward(const Eigen::MatrixXf& grad_output_sequence) 
         grad_h_next = weights[1].transpose() * grad_h_t_raw;
     }
 
-    return grad_h_next;  // Return gradient w.r.t. input (optional)
+    return Tensor(grad_h_next);  // Return gradient w.r.t. input (optional)
 }

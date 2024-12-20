@@ -22,7 +22,7 @@ public:
      * @param targets A matrix of target values.
      * @return The computed MSE loss as a float.
      */
-    float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override; 
+    float forwardMatrix(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override; 
 
     /**
      * @brief Computes the backward pass of the MSE loss.
@@ -31,7 +31,9 @@ public:
      * 
      * @return A matrix representing the gradient of the loss.
      */
-    Eigen::MatrixXf backward() const override;
+    Eigen::MatrixXf backwardMatrix() const override;
+
+
 };
 
 /**
@@ -55,9 +57,9 @@ public:
      * @param targets The ground truth values as a matrix.
      * @return The computed loss as a float.
      */
-    float forward(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) override;
+    float forwardMatrix(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) override;
 
-    Eigen::MatrixXf backward() const override;
+    Eigen::MatrixXf backwardMatrix() const override;
 };
 
 /**
@@ -85,7 +87,7 @@ public:
      * @param targets A matrix of target values (one hot encoded)
      * @return The computed cross-entropy loss.
      */
-    float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override;
+    float forwardMatrix(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override;
     
     /**
      * @brief Computes the gradient of the cross-entropy loss with respect to the predictions.
@@ -100,7 +102,7 @@ public:
      * @param targets A matrix of target values (one hot encoded).
      * @return The computed gradient of the cross-entropy loss.
      */
-    Eigen::MatrixXf backward() const override;
+    Eigen::MatrixXf backwardMatrix() const override;
 };
 
 /**
@@ -113,10 +115,10 @@ public:
 class BinaryCrossEntropyLoss: public Loss {
 public:
     // Forward pass: Calculate loss for binary classification
-    float forward(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override;
+    float forwardMatrix(const Eigen::MatrixXf& predictions, const Eigen::MatrixXf& targets) override;
 
     // Backward pass: Compute the gradient of the loss with respect to predictions
-    Eigen::MatrixXf backward() const override;
+    Eigen::MatrixXf backwardMatrix() const override;
 };
 
 #endif // LOSS_FNS_H

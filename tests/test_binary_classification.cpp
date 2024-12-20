@@ -27,7 +27,7 @@ TEST(BinaryCrossEntropyLossTest, LossForward) {
     Eigen::MatrixXf targets(5, 1);
     targets << 1.0f, 0.0f, 1.0f, 0.0f, 1.0f;  // Binary targets
 
-    float loss = loss_fn.forward(predictions, targets);
+    float loss = loss_fn.forwardMatrix(predictions, targets);
 
     // Assert that the loss is a non-negative value
     ASSERT_GT(loss, 0);
@@ -43,9 +43,9 @@ TEST(BinaryCrossEntropyLossTest, LossBackward) {
     Eigen::MatrixXf targets(5, 1);
     targets << 1.0f, 0.0f, 1.0f, 0.0f, 1.0f;  // Binary targets
 
-    loss_fn.forward(predictions, targets);  // Compute the forward pass to set predictions
+    loss_fn.forwardMatrix(predictions, targets);  // Compute the forward pass to set predictions
 
-    Eigen::MatrixXf grad_loss = loss_fn.backward();
+    Eigen::MatrixXf grad_loss = loss_fn.backwardMatrix();
 
     // Ensure gradients have the correct shape (same as the predictions)
     ASSERT_EQ(grad_loss.rows(), 5);

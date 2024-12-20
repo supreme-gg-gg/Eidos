@@ -73,8 +73,7 @@ public:
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
 private:
-    float alpha;
-    Eigen::MatrixXf cache_output;
+    float alpha;  // The slope for negative values
 };
 
 /**
@@ -183,8 +182,6 @@ class Tanh: public Activation {
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
-    private:
-    Eigen::MatrixXf cache_output;
 };
 
 #endif //ACTIVATION_FNS_H

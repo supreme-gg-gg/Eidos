@@ -11,6 +11,7 @@
 #include "optimizer.h"
 #include "loss.h"
 #include "callback.h"
+#include "tensor.hpp"
 
 /**
  * @class Model
@@ -61,7 +62,7 @@ public:
      * and m is the number of features.
      * @return Eigen::MatrixXf The output matrix after the forward pass.
      */
-    Eigen::MatrixXf forward(const Eigen::MatrixXf& input);
+    Tensor forward(const Tensor& input);
 
     /**
      * @brief Performs the backward pass of the model, computing the gradient of the loss with respect to the model's parameters.
@@ -71,7 +72,7 @@ public:
      * 
      * @param grad_output The gradient of the loss with respect to the output of the model. This is a matrix of the same shape as the model's output.
      */
-    void backward(const Eigen::MatrixXf& grad_output);
+    void backward(const Tensor& grad_output);
 
     /**
      * @brief Optimizes the model parameters.
@@ -111,23 +112,28 @@ public:
     /**
      * @brief Trains the model using the provided training data and labels.
      * 
+     * @warning This does not support batched images (i.e. 4D tensors). 3D tensor inputs are
+     * assumed to be a batch of 2D inputs. This will result in unexpected behavior if the
+     * input tensor is not a batch of 2D inputs.
+     * 
      * @param training_data A matrix containing the training data.
      * @param training_labels A matrix containing the training labels.
      * @param epochs The number of epochs to train the model.
-     * @param batch_size The size of each batch for training.
      * @param loss_function The loss function to be used during training.
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
-    void Train(const Eigen::MatrixXf& training_data, const Eigen::MatrixXf& training_labels, int epochs, int batch_size, Loss& loss_function, Optimizer* optimizer=nullptr);
+    void Train(const Tensor& training_data, const Tensor& training_labels, int epochs, Loss& loss_function, Optimizer* optimizer=nullptr);
 
     /**
      * @brief Tests the model using the provided testing data and labels.
      * 
-     * @param testing_data A matrix containing the testing data.
-     * @param testing_labels A matrix containing the testing labels.
+     * @note This assumes that the data is not batched for training.
+     * 
+     * @param testing_data A tensor containing the testing data.
+     * @param testing_labels A tensor containing the testing labels.
      * @param loss_function The loss function to evaluate the model's performance.
      */
-    void Test(const Eigen::MatrixXf& testing_data, const Eigen::MatrixXf& testing_labels, Loss& loss_function);
+    void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function);
 
     /**
      * @brief Retrieves a pointer to the layer at the specified index.
