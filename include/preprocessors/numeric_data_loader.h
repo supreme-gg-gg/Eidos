@@ -35,16 +35,15 @@ public:
      * @param features Matrix of features.
      * @param labels Matrix of labels.
      */
-    NumericDataLoader(const Eigen::MatrixXf& features, const Eigen::MatrixXf& labels);
+    NumericDataLoader(const std::vector<Eigen::MatrixXf>& features, const std::vector<Eigen::MatrixXf>& labels);
 
     /**
      * @brief Splits the data into training and testing sets.
      * @param trainToTestSplitRatio Ratio of training to testing data.
      * @return InputData structure containing split data.
      */
-    std::variant<IndividualInputData<Eigen::MatrixXf, Eigen::MatrixXf>, 
-        BatchInputData<Eigen::MatrixXf, Eigen::MatrixXf>> 
-    train_test_split(float trainToTestSplitRatio = 0.8f, int batch_size = 1);
+    IndividualInputData<Eigen::MatrixXf, Eigen::MatrixXf> get_individual_data(float trainToTestSplitRatio = 0.8f);
+    BatchInputData<Eigen::MatrixXf, Eigen::MatrixXf> get_batch_data(float trainToTestSplitRatio = 0.8f, int batch_size = 32);
 
     /**
      * @brief Shuffles the data.
@@ -58,7 +57,7 @@ public:
      * @brief Centers the data around 0.
      * @return Reference to the current object fluently.
      */
-    NumericDataLoader& center();
+    NumericDataLoader& center(float center_val = 0.0);
 
     /**
      * @brief Applies min-max scaling to the data.
@@ -119,8 +118,8 @@ public:
     void print_preview(int num_columns = 5) const;
 
 private:
-    Eigen::MatrixXf features_; ///< Matrix of features
-    Eigen::MatrixXf labels_;   ///< Matrix of labels
+    std::vector<Eigen::MatrixXf> features_; ///< Matrix of features
+    std::vector<Eigen::MatrixXf> labels_;   ///< Matrix of labels
     std::map<std::string, int> oneHotMapping_; ///< Mapping for one-hot encoding
 };
 

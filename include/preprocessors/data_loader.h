@@ -63,14 +63,14 @@ public:
 };
 
 template <typename T_inputs, typename T_targets>
-struct IndividualDataset : Dataset<IndividualDataSample<T_inputs, T_targets>> {
+struct IndividualDataset : public Dataset<IndividualDataSample<T_inputs, T_targets>> {
 public:
     IndividualDataSample<T_inputs, T_targets> get_current();
     // Iterator class to enable iteration over batches
 };
 
 template <typename T_inputs, typename T_targets>
-class BatchDataset : Dataset<BatchDataSample<T_inputs, T_targets>> {
+class BatchDataset : public Dataset<BatchDataSample<T_inputs, T_targets>> {
 public:
     // Returns the current batch of data
     BatchDataSample<T_inputs, T_targets> get_current() const;

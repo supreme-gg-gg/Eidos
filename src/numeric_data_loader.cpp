@@ -10,6 +10,8 @@
 #include <random>
 #include <numeric>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 
 NumericDataLoader::NumericDataLoader(const std::string& filePath, 
         const std::string labelsHeaderName, 
@@ -17,6 +19,9 @@ NumericDataLoader::NumericDataLoader(const std::string& filePath,
 {
     CSVParser parser = CSVParser(',');
     std::vector<std::vector<std::string>> data = parser.parse(filePath);
+    if (data.empty() || data[0].empty()) {
+        throw std::runtime_error("Empty CSV file: " + filePath);
+    };
     
     // Extract headers
     std::vector<std::string> headers = data[0];
@@ -34,71 +39,216 @@ NumericDataLoader::NumericDataLoader(const std::string& filePath,
     if (labelIndex == -1) {
         throw std::runtime_error("Label column not found in CSV file.");
     }
-
-    // Extract labels and features
-    features_.resize(data.size() - 1, headers.size() - 1);
-    for (size_t i = 1; i < data.size(); ++i) {
-        if (data[i].size() != headers.size()) {
-            throw std::runtime_error("Invalid data entry in CSV file.");
+    
+    const size_t num_samples = data.size() - 1;  // Excluding header row
+    const size_t num_features = data[0].size() - 1; // Excluding target column
+    
+    // Analyze each feature to determine if it's numeric or categorical
+    std::vector<bool> is_numeric(num_features+1, true);
+    std::vector<std::unordered_set<std::string>> unique_categories(num_features+1);
+    
+    // For each feature
+    for (size_t feat = 0; feat < num_features+1; ++feat) {
+        // Check all samples for this feature
+        if (feat == labelIndex) {
+            continue;
         }
-        if (oneHotMapping_.find(data[i][labelIndex]) == oneHotMapping_.end()) {
-            oneHotMapping_[data[i][labelIndex]] = oneHotMapping_.size();
-        }
-        
-        Eigen::VectorXf featureVector(headers.size() - 1);
-        int featureIndex = 0;
-        for (size_t j = 0; j < data[i].size(); ++j) {
-            if (j != labelIndex) {
-                featureVector(featureIndex++) = std::stof(data[i][j]);
+        for (size_t sample = 1; sample < data.size(); ++sample) {
+            const std::string& value = data[sample][feat];
+            
+            // Try to convert to float
+            try {
+                std::stof(value);
+            } catch (...) {
+                is_numeric[feat] = false;
+            }
+            
+            // Store unique categories
+            if (!is_numeric[feat]) {
+                unique_categories[feat].insert(value);
             }
         }
-        features_.row(i-1) = featureVector;
     }
-    labels_.resize(data.size() - 1, oneHotMapping_.size());
-    for (int i = 1; i < data.size(); ++i) {
-        if (oneHotMapping_.find(data[i][labelIndex]) == oneHotMapping_.end()) {
+    
+    // Calculate total number of features after one-hot encoding
+    size_t total_features = 0;
+    for (size_t feat = 0; feat < num_features+1; ++feat) {
+        if (feat == labelIndex) {
+            continue;
+        }
+        if (is_numeric[feat]) {
+            total_features += 1;
+        } else {
+            total_features += unique_categories[feat].size();
+        }
+    }
+    
+    // Prepare the result vector
+    features_.reserve(num_samples);
+    
+    // Process each sample
+    for (size_t sample = 1; sample <= num_samples; ++sample) {
+        Eigen::MatrixXf sample_vector(1, total_features);
+        size_t current_pos = 0;
+        
+        // Process each feature
+        for (size_t feat = 0; feat < num_features+1; ++feat) {
+            if (feat == labelIndex) {
+                continue;
+            }
+            if (is_numeric[feat]) {
+                // Convert numeric feature
+                sample_vector(0, current_pos) = std::stof(data[sample][feat]);
+                current_pos += 1;
+            } else {
+                // One-hot encode categorical feature
+                const std::string& category = data[sample][feat];
+                size_t category_size = unique_categories[feat].size();
+                Eigen::MatrixXf one_hot = Eigen::MatrixXf::Zero(1, category_size);
+                
+                // Find position of current category
+                size_t category_pos = 0;
+                for (const auto& cat : unique_categories[feat]) {
+                    if (cat == category) {
+                        one_hot(0, category_pos) = 1.0f;
+                        break;
+                    }
+                    category_pos++;
+                }
+                
+                sample_vector.block(0, current_pos, 1, category_size) = one_hot;
+                current_pos += category_size;
+            }
+        }
+        features_.push_back(sample_vector);
+    }
+    
+    // Preprocess the labels
+    for (size_t sample = 1; sample < num_samples; ++sample) {
+        if (oneHotMapping_.find(data[sample][labelIndex]) == oneHotMapping_.end()) {
+            oneHotMapping_[data[sample][labelIndex]] = oneHotMapping_.size();
+        }
+    }
+    labels_.resize(num_samples);
+    for (int sample = 1; sample < data.size(); ++sample) {
+        if (oneHotMapping_.find(data[sample][labelIndex]) == oneHotMapping_.end()) {
             throw std::runtime_error("Label not found in mapping.");
         }
         Eigen::RowVectorXf oneHotVector = Eigen::RowVectorXf::Zero(oneHotMapping_.size());
-        oneHotVector(oneHotMapping_.at(data[i][labelIndex])) = 1.0f;
-        labels_.row(i-1) = oneHotVector;
+        oneHotVector(oneHotMapping_.at(data[sample][labelIndex])) = 1.0f;
+        labels_[sample-1] = oneHotVector;
     }
     if (shuffle) {
         this->shuffle();
     }
 }
 
-NumericDataLoader::NumericDataLoader(const Eigen::MatrixXf& features, 
-        const Eigen::MatrixXf& labels)
+NumericDataLoader::NumericDataLoader(const std::vector<Eigen::MatrixXf>& features, 
+        const std::vector<Eigen::MatrixXf>& labels)
     : features_(features), labels_(labels) {}
 
-InputData NumericDataLoader::train_test_split(float trainToTestSplitRatio) {
+IndividualInputData<Eigen::MatrixXf, Eigen::MatrixXf> NumericDataLoader::get_individual_data(float trainToTestSplitRatio) {
     if (trainToTestSplitRatio < 0.0f || trainToTestSplitRatio > 1.0f) {
         throw std::invalid_argument("Invalid train-test split ratio. (Expected: 0.0-1.0)");
     }
-    size_t numTrainSamples = static_cast<size_t>(features_.rows() * trainToTestSplitRatio);
-    size_t numTestSamples = features_.rows() - numTrainSamples;
+    size_t numTrainSamples = static_cast<size_t>(features_.size() * trainToTestSplitRatio);
+    size_t numTestSamples = features_.size() - numTrainSamples;
     
-    InputData result;
-    result.train_features = features_.topRows(numTrainSamples);
-    result.train_labels = labels_.topRows(numTrainSamples);
-    result.test_features = features_.bottomRows(numTestSamples);
-    result.test_labels = labels_.bottomRows(numTestSamples);
+    IndividualInputData<Eigen::MatrixXf, Eigen::MatrixXf> result;
+    result.training.samples.reserve(numTrainSamples);
+    for (size_t i = 0; i < numTrainSamples; ++i) {
+        result.training.samples.push_back(IndividualDataSample<Eigen::MatrixXf, Eigen::MatrixXf>(features_[i], labels_[i]));
+    }
+    for (size_t i = numTrainSamples; i < features_.size(); ++i) {
+        result.testing.samples.push_back(IndividualDataSample<Eigen::MatrixXf, Eigen::MatrixXf>(features_[i], labels_[i]));
+    }
+    
+    return result;
+}
+
+BatchInputData<Eigen::MatrixXf, Eigen::MatrixXf> NumericDataLoader::get_batch_data(float trainToTestSplitRatio, int batch_size) {
+    if (trainToTestSplitRatio < 0.0f || trainToTestSplitRatio > 1.0f) {
+        throw std::invalid_argument("Invalid train-test split ratio. (Expected: 0.0-1.0)");
+    }
+    if (batch_size <= 0 || batch_size > features_.size()) {
+        Console::log("Invalid batch size. Defaulting to 1.", Console::WARNING);
+        batch_size = 1;
+    }
+    size_t numTrainSamples = static_cast<size_t>(features_.size() * trainToTestSplitRatio);
+    size_t numTestSamples = features_.size() - numTrainSamples;
+    if (numTrainSamples < batch_size || numTestSamples < batch_size) {
+        Console::log("Batch size exceeds number of samples. Defaulting to 1.", Console::WARNING);
+        batch_size = 1;
+    }
+    
+    BatchInputData<Eigen::MatrixXf, Eigen::MatrixXf> result;
+    result.training.set_batch_size(batch_size);
+    result.testing.set_batch_size(batch_size);
+    
+    size_t sample = 0;
+    while (sample < features_.size()) {
+        // Construct a MatrixXf batch data
+        Eigen::MatrixXf batch_features(batch_size, features_[0].cols());
+        Eigen::MatrixXf batch_labels(batch_size, labels_[0].cols());
+        if (sample + batch_size > features_.size()) {
+            batch_features.resize(features_.size() - sample, Eigen::NoChange);
+            batch_labels.resize(features_.size() - sample, Eigen::NoChange);
+        }
+        for (int i = 0; i < batch_size; ++i) {
+            batch_features.row(i) = features_[sample];
+            batch_labels.row(i) = labels_[sample];
+            sample++;
+        }
+        result.training.samples.push_back(BatchDataSample<Eigen::MatrixXf, Eigen::MatrixXf>(batch_features, batch_labels));
+        sample++;
+    }
+    for (size_t i = 0; i < numTrainSamples; ++i) {
+        // Construct a MatrixXf batch data
+        Eigen::MatrixXf batch_features(batch_size, features_[0].cols());
+        Eigen::MatrixXf batch_labels(batch_size, labels_[0].cols());
+        for (int j = 0; j < batch_size; ++j) {
+            // Push whatever is left if the batch size is not a multiple of the number of samples
+            if (i*batch_size+j >= features_.size()) {
+                batch_features.resize(j, Eigen::NoChange);
+                batch_labels.resize(j, Eigen::NoChange);
+                break;
+            }
+            batch_features.row(j) = features_[i*batch_size+j];
+            batch_labels.row(j) = labels_[i*batch_size+j];
+        }
+        result.training.samples.push_back(BatchDataSample<Eigen::MatrixXf, Eigen::MatrixXf>(batch_features, batch_labels));
+    }
+    for (size_t i = numTrainSamples; i < features_.size(); ++i) {
+        // Construct a MatrixXf batch data
+        Eigen::MatrixXf batch_features(batch_size, features_[0].cols());
+        Eigen::MatrixXf batch_labels(batch_size, labels_[0].cols());
+        for (int j = 0; j < batch_size; ++j) {
+            if (i*batch_size+j >= features_.size()) {
+                batch_features.resize(j, Eigen::NoChange);
+                batch_labels.resize(j, Eigen::NoChange);
+                break;
+            }
+            batch_features.row(j) = features_[i*batch_size+j];
+            batch_labels.row(j) = labels_[i*batch_size+j];
+        }
+        result.testing.samples.push_back(BatchDataSample<Eigen::MatrixXf, Eigen::MatrixXf>(batch_features, batch_labels));
+    }
+    
     return result;
 }
 
 NumericDataLoader& NumericDataLoader::shuffle() {
-    std::vector<size_t> indices(features_.rows());
+    std::vector<size_t> indices(features_.size());
     std::iota(indices.begin(), indices.end(), 0);
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(indices.begin(), indices.end(), g);
 
-    Eigen::MatrixXf shuffled_features(features_.rows(), features_.cols());
-    Eigen::MatrixXf shuffled_labels(labels_.rows(), labels_.cols());
+    std::vector<Eigen::MatrixXf> shuffled_features(features_.size(), Eigen::MatrixXf(1, features_[0].cols()));
+    std::vector<Eigen::MatrixXf> shuffled_labels(labels_.size(), Eigen::MatrixXf(1, labels_[0].cols()));
     for (size_t i = 0; i < indices.size(); ++i) {
-        shuffled_features.row(i) = features_.row(indices[i]);
-        shuffled_labels.row(i) = labels_.row(indices[i]);
+        shuffled_features[i] = features_[indices[i]];
+        shuffled_labels[i] = labels_[indices[i]];
     }
     features_ = shuffled_features;
     labels_ = shuffled_labels;
@@ -106,8 +256,18 @@ NumericDataLoader& NumericDataLoader::shuffle() {
     return *this;
 }
 
-NumericDataLoader& NumericDataLoader::center() {
-    features_ = features_.rowwise() - features_.colwise().mean();
+NumericDataLoader& NumericDataLoader::center(float center_val) {
+    // Calculate the mean of each column
+    Eigen::VectorXf mean = Eigen::VectorXf::Zero(features_[0].cols());
+    for (const auto& feature : features_) {
+        mean += feature;
+    }
+    mean /= features_.size();
+    mean = mean.array() + center_val;
+    // Subtract the mean from each feature
+    for (auto& feature : features_) {
+        feature.rowwise() -= mean.transpose();
+    }
     return *this;
 }
 
