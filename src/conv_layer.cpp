@@ -3,7 +3,7 @@
 #include <random>
 #include <Eigen/Dense>
 
-ConvolutionalLayer::ConvolutionalLayer(int input_channels, int output_channels, 
+Conv2D::Conv2D(int input_channels, int output_channels, 
                                        int kernel_size, int stride, int padding)
     : kernel_size_(kernel_size), stride_(stride), padding_(padding) {
     // Store the input shape
@@ -28,7 +28,7 @@ ConvolutionalLayer::ConvolutionalLayer(int input_channels, int output_channels,
     // Output shape calculation deferred to first forward pass based on input dimensions
 }
 
-std::vector<int> ConvolutionalLayer::calculateOutputShape() const {
+std::vector<int> Conv2D::calculateOutputShape() const {
     // Ensure input_shape is valid
     if (this->input_shape.size() != 3) {
         throw std::invalid_argument("Input shape must have 3 dimensions: [channels, height, width].");
@@ -49,7 +49,28 @@ std::vector<int> ConvolutionalLayer::calculateOutputShape() const {
     return {C_out, H_out, W_out};
 }
 
-Tensor ConvolutionalLayer::forward(const Tensor& input) {
+Tensor Conv2D::applyPadding(const Tensor& input) {
+    // Extract input dimensions
+    int C_in = input_shape[0];  // Number of input channels
+    int H_in = input_shape[1];  // Input height
+    int W_in = input_shape[2];  // Input width
+
+    // Calculate the padded height and width
+    int H_padded = H_in + 2 * padding_;
+    int W_padded = W_in + 2 * padding_;
+
+    // Create a new tensor with the padded dimensions
+    Tensor padded_input(C_in, H_padded, W_padded);
+
+    // Copy the input data to the center of the padded tensor
+    for (int c = 0; c < C_in; ++c) {
+        padded_input[c].block(padding_, padding_, H_in, W_in) = input[c];
+    }
+
+    return padded_input;
+}
+
+Tensor Conv2D::forward(const Tensor& input) {
     // Cache the input for use in the backward pass
     this->cache_input = input;
 
@@ -108,61 +129,59 @@ Tensor ConvolutionalLayer::forward(const Tensor& input) {
     return output;
 }
 
-Tensor ConvolutionalLayer::backward(const Tensor& grad_output) {
-    // Extract the gradient of the output as a matrix for further operations
-    Eigen::MatrixXf grad_output_matrix = grad_output.getSingleMatrix();
-
-    // Get the input shape from the cache_input tensor (it has already been set in the forward pass)
-    std::vector<int> input_shape = cache_input.shape();
-    int input_channels = input_shape[0];
-    int input_height = input_shape[1];
-    int input_width = input_shape[2];
-    
-    // Initialize the gradient of the input (this will have the same shape as the input)
-    Tensor grad_input(input_shape); // This tensor will hold the gradients for the input
-
-    // Initialize the gradient of weights and biases (for updating during backprop)
+Tensor Conv2D::backward(const Tensor& grad_output) {
+    // Initialize gradient tensors
+    Tensor grad_input(input_shape);
     grad_weights.clear();
     grad_biases.clear();
-    
-    // Loop over each filter (output channel)
-    for (int out_c = 0; out_c < grad_output.shape()[0]; ++out_c) {
-        for (int in_c = 0; in_c < input_channels; ++in_c) {
-            // Loop over the spatial dimensions (height and width) of the input and output
-            for (int i = 0; i < input_height; ++i) {
-                for (int j = 0; j < input_width; ++j) {
-                    // Here you should apply the kernel convolution to calculate the gradients
-                    // For the input gradient, we need to perform a "reverse" convolution.
 
-                    // Apply the filter (convolution)
-                    for (int k = 0; k < kernel_size_; ++k) {
-                        for (int l = 0; l < kernel_size_; ++l) {
-                            // We compute gradients for each input channel and spatial position
-                            int grad_x = i - padding_ + k;  // Reverse convolution index
-                            int grad_y = j - padding_ + l;  // Reverse convolution index
+    // Iterate through each output channel
+    for (int oc = 0; oc < output_shape[0]; ++oc) {
+        Eigen::MatrixXf grad_output_channel = grad_output[oc];
 
-                            // Here grad_input and grad_output tensors are indexed correctly by their dimensions
-                            grad_input[in_c](grad_x, grad_y) += grad_output[out_c](i, j) * weights[out_c](k, l);
-                        }
+        // Update biases: sum of gradients over spatial dimensions
+        grad_biases[oc] = grad_output_channel.rowwise().sum();
+
+        // Iterate through each input channel
+        for (int ic = 0; ic < input_shape[0]; ++ic) {
+            Eigen::MatrixXf input_channel = cache_input[ic];
+            Eigen::MatrixXf kernel = weights[oc * input_shape[0] + ic];
+
+            // Compute gradients for weights
+            for (int i = 0; i < kernel.rows(); ++i) {
+                for (int j = 0; j < kernel.cols(); ++j) {
+                    // Extract region for convolution
+                    Eigen::MatrixXf region = input_channel.block(i, j, grad_output_channel.rows(), grad_output_channel.cols());
+                    grad_weights[oc * input_shape[0] + ic](i, j) += (region.array() * grad_output_channel.array()).sum();
+                }
+            }
+
+            // Compute gradients for input
+            Eigen::MatrixXf flipped_kernel = kernel.colwise().reverse().rowwise().reverse();
+            Eigen::MatrixXf grad_input_channel = Eigen::MatrixXf::Zero(input_shape[1], input_shape[2]);
+
+            for (int i = 0; i < input_shape[1]; ++i) {
+                for (int j = 0; j < input_shape[2]; ++j) {
+                    // Calculate region in grad_output_channel
+                    int start_row = i - padding_;
+                    int start_col = j - padding_;
+                    int end_row = start_row + kernel_size_;
+                    int end_col = start_col + kernel_size_;
+
+                    // Perform boundary checks
+                    if (start_row >= 0 && start_col >= 0 && end_row <= grad_output_channel.rows() && end_col <= grad_output_channel.cols()) {
+                        Eigen::MatrixXf region = grad_output_channel.block(start_row, start_col, kernel_size_, kernel_size_);
+                        grad_input_channel(i, j) += (region.array() * flipped_kernel.array()).sum();
                     }
                 }
             }
+
+            // Accumulate gradient for the current input channel
+            grad_input[ic] += grad_input_channel;
         }
     }
 
-    // Now, let's compute the gradients with respect to weights and biases
-    for (int out_c = 0; out_c < grad_output.shape()[0]; ++out_c) {
-        for (int in_c = 0; in_c < input_channels; ++in_c) {
-            // Calculate gradients for weights and biases using the chain rule
-            for (int i = 0; i < kernel_size_; ++i) {
-                for (int j = 0; j < kernel_size_; ++j) {
-                    grad_weights[out_c](i, j) += grad_output[out_c](i, j);
-                }
-            }
-            grad_biases[out_c] += grad_output[out_c];  // Gradient w.r.t. biases
-        }
-    }
 
-    // Return the calculated gradient w.r.t. input as a tensor
+    // Return the computed gradient tensor
     return grad_input;
 }
