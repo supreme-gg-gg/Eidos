@@ -129,19 +129,20 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels, in
     }
 }
 
-// TOOD: This does not really accept true tensors, only matrices
 void Model::Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function) {
     set_inference();
-    Tensor outputs = forward(testing_data);
-    float loss = loss_function.forward(outputs, testing_labels);
+    Tensor flattened_inputs(testing_data.flatten());
+    Tensor flattened_labels(testing_labels.flatten());
+    Tensor outputs = forward(flattened_inputs);
+    float loss = loss_function.forward(outputs, flattened_labels);
     int correct_predictions = 0;
-    for (int i = 0; i < outputs[0].rows(); ++i) {
+    for (int i = 0; i < outputs.getSingleMatrix().rows(); ++i) {
         // Implement argmax manually
         Eigen::Index predicted_index;
-        outputs[0].row(i).maxCoeff(&predicted_index);
+        outputs.getSingleMatrix().row(i).maxCoeff(&predicted_index);
         
         Eigen::Index actual_index;
-        testing_labels[0].row(i).maxCoeff(&actual_index);
+        flattened_labels.getSingleMatrix().row(i).maxCoeff(&actual_index);
         
         // Compare if the predicted and actual labels match
         if (predicted_index == actual_index) {
