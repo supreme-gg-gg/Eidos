@@ -6,13 +6,33 @@
 #ifndef NUMERIC_DATA_LOADER_H
 #define NUMERIC_DATA_LOADER_H
 
-#include "data_loader.h"
+#include "../tensor.hpp"
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
 #include <iterator>
 #include <map>
 #include <variant>
+
+struct Dataset {
+    Tensor inputs;
+    Tensor targets;
+    Dataset(const Tensor& inputs, const Tensor& targets) : inputs(inputs), targets(targets) {}
+    Dataset() = default;
+};
+
+struct InputData {
+    Dataset training;
+    Dataset testing;
+    size_t num_features() const { return num_features_; }
+    size_t num_classes() const { return num_classes_; }
+    InputData(size_t num_features, size_t num_classes) : training(), testing(), num_features_(num_features), num_classes_(num_classes) {}
+    InputData(const Dataset& training, const Dataset& testing, const size_t num_features, const size_t num_classes) : training(training), testing(testing), num_features_(num_features), num_classes_(num_classes) {}
+    InputData() = default;
+private:
+    size_t num_features_;
+    size_t num_classes_;
+};
 
 /**
  * @class NumericDataLoader
@@ -27,23 +47,21 @@ public:
      * @param shuffle Whether to shuffle the data.
      */
     NumericDataLoader(const std::string& filePath, 
-                      const std::string labelsHeaderName = "labels", 
-                      bool shuffle = true);
+                      const std::string labelsHeaderName = "labels");
 
     /**
      * @brief Constructor to initialize with features and labels.
      * @param features Matrix of features.
      * @param labels Matrix of labels.
      */
-    NumericDataLoader(const std::vector<Eigen::MatrixXf>& features, const std::vector<Eigen::MatrixXf>& labels);
+    NumericDataLoader(const Eigen::MatrixXf& features, const Eigen::MatrixXf& labels);
 
     /**
      * @brief Splits the data into training and testing sets.
      * @param trainToTestSplitRatio Ratio of training to testing data.
      * @return InputData structure containing split data.
      */
-    IndividualInputData<Eigen::MatrixXf, Eigen::MatrixXf> get_individual_data(float trainToTestSplitRatio = 0.8f);
-    BatchInputData<Eigen::MatrixXf, Eigen::MatrixXf> get_batch_data(float trainToTestSplitRatio = 0.8f, int batch_size = 32);
+    InputData train_test_split(float trainToTestSplitRatio = 0.8f, int batch_size = 1);
 
     /**
      * @brief Shuffles the data.
@@ -118,8 +136,8 @@ public:
     void print_preview(int num_columns = 5) const;
 
 private:
-    std::vector<Eigen::MatrixXf> features_; ///< Matrix of features
-    std::vector<Eigen::MatrixXf> labels_;   ///< Matrix of labels
+    Eigen::MatrixXf features_; ///< Matrix of features
+    Eigen::MatrixXf labels_;   ///< Matrix of labels
     std::map<std::string, int> oneHotMapping_; ///< Mapping for one-hot encoding
 };
 

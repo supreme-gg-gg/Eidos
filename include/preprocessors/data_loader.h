@@ -6,101 +6,71 @@
 #include <vector>
 #include <map>
 
-template <typename T_inputs, typename T_targets>
-struct DataSample {
-    T_inputs inputs; ///< Features matrix
-    T_targets targets; ///< Labels matrix
-
-    DataSample() = default;
-    DataSample(const T_inputs& inputs, const T_targets& targets)
-        : inputs(inputs), targets(targets) {}
-
-    virtual bool is_batch() const { return false; }
-    virtual ~DataSample() = default;
-};
-template <typename T_inputs, typename T_targets>
-struct IndividualDataSample : DataSample<T_inputs, T_targets> {
-    using DataSample<T_inputs, T_targets>::DataSample;
-
-    bool is_batch() const override { return false; }
-};
-template <typename T_inputs, typename T_targets>
-struct BatchDataSample : DataSample<T_inputs, T_targets> {
-    using DataSample<T_inputs, T_targets>::DataSample;
-
-    bool is_batch() const override { return true; }
-};
-
-template <typename T_samples>
-struct Dataset {
+template <typename T>
+class DataLoader {
 public:
-    T_sample get_current();
-    size_t num_samples() const ;
-    // Iterator class to enable iteration over batches
-    class Iterator {
-    public:
-        Iterator(DataSet<T_samples>& data, bool is_end = false);
+    virtual ~DataLoader() = default;
 
-        // Dereferencing operator to get the current batch
-        T_sample& operator*();
+    /**
+     * @brief Pure virtual function to load data from a specified file.
+     * 
+     * This function must be implemented by derived classes to load data from the given file path.
+     * The loaded data should be stored in the provided vectors for features and labels.
+     * 
+     * @param filePath The path to the file from which to load data.
+     * @param features A vector to store the loaded feature matrices.
+     * @param labels A vector to store the corresponding labels.
+     */
+    virtual void load_data(const std::string& filePath, std::vector<T>& features, 
+        std::vector<std::string>& labels) = 0;
 
-        // Increment operator to move to the next batch
-        Iterator& operator++();
+    // Overload for loading data in place
+    virtual void load_data(const std::string& filePath) = 0;
+    
+    /**
+     * @brief Splits the dataset into training and testing sets.
+     * 
+     * @param features A vector of Eigen::MatrixXf containing the feature matrices.
+     * @param labels A vector of strings containing the corresponding labels.
+     * @param train_features A vector of Eigen::MatrixXf to store the training feature matrices.
+     * @param train_labels A vector of strings to store the training labels.
+     * @param test_features A vector of Eigen::MatrixXf to store the testing feature matrices.
+     * @param test_labels A vector of strings to store the testing labels.
+     */
+    virtual void split_data(const std::vector<T>& features, 
+        const std::vector<std::string>& labels, 
+        std::vector<T>& train_features, 
+        std::vector<std::string>& train_labels, 
+        std::vector<T>& test_features, 
+        std::vector<std::string>& test_labels, 
+        float trainToTestSplitRatio) = 0;
 
-        // Equality comparison for iterators (used by range-based for)
-        bool operator==(const Iterator& other) const;
-        bool operator!=(const Iterator& other) const;
+    virtual void split_data(float trainToTestSplitRatio) = 0;
 
-    private:
-        Dataset& data_;
-        int current_idx_;
-    };
+    /**
+     * @brief Converts string labels to one-hot encoded labels.
+     * 
+     * This function takes a vector of string labels and converts them into one-hot encoded labels.
+     * The conversion is done using a std::map.
+     * 
+     * @tparam T2 The type of the mapping object used for conversion.
+     * @param labels A vector of string labels to be converted.
+     * @param one_hot_labels A vector to store the resulting one-hot encoded labels.
+     * @param mapping A std::map object used to map string labels to their corresponding one-hot encoded values.
+     */
+    virtual void convert_to_one_hot(const std::vector<std::string>& labels, 
+        std::vector<Eigen::MatrixXf>& one_hot_labels, const std::map<std::string, int>& mapping) = 0;
 
-    Iterator begin();
-    Iterator end();
+    virtual void convert_to_one_hot(const std::map<std::string, int>& mapping) = 0;
 
-    std::vector<T_samples> samples;
-};
+    // These getters should be overridden in derived classes if supported
+    virtual std::vector<T>& get_features() {
+        throw std::logic_error("Getter not supported in this DataLoader variant.");
+    }
 
-template <typename T_inputs, typename T_targets>
-struct IndividualDataset : public Dataset<IndividualDataSample<T_inputs, T_targets>> {
-public:
-    IndividualDataSample<T_inputs, T_targets> get_current();
-    // Iterator class to enable iteration over batches
-};
-
-template <typename T_inputs, typename T_targets>
-class BatchDataset : public Dataset<BatchDataSample<T_inputs, T_targets>> {
-public:
-    // Returns the current batch of data
-    BatchDataSample<T_inputs, T_targets> get_current() const;
-    // Sets the batch size for the DataLoader
-    void set_batch_size(int batch_size);
-    // Returns the number of batches available for iteration
-    int num_batches() const;
-
-private:
-    size_t batch_size_;
-    size_t current_batch_idx_;
-    size_t num_batches_;
-};
-
-template <typename T_dataset>
-struct InputData {
-    T_dataset training; ///< Training data
-    T_dataset testing;  ///< Testing data
-};
-
-template <typename T_inputs, typename T_targets>
-struct IndividualInputData {
-    IndividualDataset<T_inputs, T_targets> training; ///< Training data
-    IndividualDataset<T_inputs, T_targets> testing;  ///< Testing data
-};
-
-template <typename T_inputs, typename T_targets>
-struct BatchInputData {
-    BatchDataset<T_inputs, T_targets> training; ///< Training data
-    BatchDataset<T_inputs, T_targets> testing;  ///< Testing data
+    virtual std::vector<std::string>& get_labels() {
+        throw std::logic_error("Getter not supported in this DataLoader variant.");
+    }
 };
 
 #endif // DATA_LOADER_H

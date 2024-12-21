@@ -1,7 +1,7 @@
 #ifndef IMAGE_LOADER_H
 #define IMAGE_LOADER_H
 
-#include "../include/data_loader.h"
+#include "../include/preprocessors/data_loader.h"
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
