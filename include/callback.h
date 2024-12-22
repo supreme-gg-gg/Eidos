@@ -83,7 +83,7 @@ public:
      * 
      * @return true if the training process should be stopped, false otherwise.
      */
-    bool should_stop() const {
+    bool should_stop() const override {
         return stop_training;
     }
 };
