@@ -43,6 +43,11 @@ public:
         return data_[index];
     }
 
+    // Access element by depth, row, and column (const and non-const)
+    float& operator()(size_t depth, size_t row, size_t col) {
+        return data_[depth](row, col);
+    }
+
     // Get the depth (number of matrices)
     size_t depth() const {
         return data_.size();

@@ -7,5 +7,6 @@
 #include "layers/gru_layer.h"
 #include "layers/flatten_layer.h"
 #include "layers/conv_layer.h"
+#include "layers/pooling_layer.h"
 
 #endif //LAYERS_H
