@@ -6,6 +6,26 @@
 #include <vector>
 #include <map>
 
+struct Dataset {
+    Tensor inputs;
+    Tensor targets;
+    Dataset(const Tensor& inputs, const Tensor& targets) : inputs(inputs), targets(targets) {}
+    Dataset() = default;
+};
+
+struct InputData {
+    Dataset training;
+    Dataset testing;
+    size_t num_features() const { return num_features_; }
+    size_t num_classes() const { return num_classes_; }
+    InputData(size_t num_features, size_t num_classes) : training(), testing(), num_features_(num_features), num_classes_(num_classes) {}
+    InputData(const Dataset& training, const Dataset& testing, const size_t num_features, const size_t num_classes) : training(training), testing(testing), num_features_(num_features), num_classes_(num_classes) {}
+    InputData() = default;
+private:
+    size_t num_features_;
+    size_t num_classes_;
+};
+
 template <typename T>
 class DataLoader {
 public:
