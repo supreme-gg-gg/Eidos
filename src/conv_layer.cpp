@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 
 Conv2D::Conv2D(int input_channels, int output_channels, 
-                                       int kernel_size, int stride, int padding)
+                    int kernel_size, int stride, int padding)
     : kernel_size_(kernel_size), stride_(stride), padding_(padding) {
     // Store the input shape
     this->input_shape = {input_channels, -1, -1}; // Heights and widths are unknown at initialization.
@@ -21,8 +21,14 @@ Conv2D::Conv2D(int input_channels, int output_channels,
         weights[oc] = Eigen::MatrixXf::Random(input_channels, kernel_size * kernel_size) 
             * std::sqrt(2.0f / (input_channels * kernel_size * kernel_size));
 
+        // Initialize gradients for weights
+        grad_weights[oc] = Eigen::MatrixXf::Zero(input_channels, kernel_size * kernel_size);
+
         // Initialize biases
         biases[oc] = Eigen::VectorXf::Zero(1); // Single bias per output channel
+
+        // Initialize gradients for biases
+        grad_biases[oc] = Eigen::VectorXf::Zero(1);
     }
 
     // Output shape calculation deferred to first forward pass based on input dimensions
@@ -92,18 +98,19 @@ Tensor Conv2D::forward(const Tensor& input) {
     // Extract output dimensions
     int C_out = output_shape[0]; // Number of output channels
     int H_out = output_shape[1]; // Output height
-    int W_out = output_shape[2]; // Output width
-
+    int W_out = output_shape[2]; // Output width    
+    
     // Create output tensor
     Tensor output(C_out, H_out, W_out);
 
     // Perform the convolution operation
     for (int c_out = 0; c_out < C_out; ++c_out) {
         // Initialize the output channel with biases
-        Eigen::MatrixXf out_channel = Eigen::MatrixXf::Constant(H_out, W_out, biases[c_out](0));
+        output[c_out] = Eigen::MatrixXf::Constant(H_out, W_out, biases[c_out](0));
         for (int c_in = 0; c_in < C_in; ++c_in) {
             // Extract the weight kernel for this output-input channel pair
-            const Eigen::MatrixXf& kernel = weights[c_out * C_in + c_in];
+            Eigen::MatrixXf kernel = weights[c_out].row(c_in);
+            kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
 
             // Perform the convolution operation
             for (int i = 0; i < H_out; ++i) {
@@ -117,13 +124,10 @@ Tensor Conv2D::forward(const Tensor& input) {
                         start_row, start_col, kernel_size_, kernel_size_);
 
                     // Perform element-wise multiplication and sum
-                    out_channel(i, j) += (region.array() * kernel.array()).sum();
+                    output[c_out](i, j) += (region.array() * kernel.array()).sum();
                 }
             }
         }
-
-        // Assign the computed channel to the output tensor
-        output[c_out] = out_channel;
     }
 
     return output;
@@ -131,57 +135,65 @@ Tensor Conv2D::forward(const Tensor& input) {
 
 Tensor Conv2D::backward(const Tensor& grad_output) {
     // Initialize gradient tensors
-    Tensor grad_input(input_shape);
-    grad_weights.clear();
-    grad_biases.clear();
+    Tensor grad_input(input_shape);  // Initialize the gradient for input
 
     // Iterate through each output channel
-    for (int oc = 0; oc < output_shape[0]; ++oc) {
-        Eigen::MatrixXf grad_output_channel = grad_output[oc];
+    for (int c_out = 0; c_out < output_shape[0]; ++c_out) {
+        // Extract the gradient for the output channel
+        Eigen::MatrixXf grad_output_channel = grad_output[c_out];
 
-        // Update biases: sum of gradients over spatial dimensions
-        grad_biases[oc] = grad_output_channel.rowwise().sum();
+        // Update biases: dL/db_i = sum(dL/dz_i) for all i
+        grad_biases[c_out](0) = grad_output_channel.sum();
 
         // Iterate through each input channel
-        for (int ic = 0; ic < input_shape[0]; ++ic) {
-            Eigen::MatrixXf input_channel = cache_input[ic];
-            Eigen::MatrixXf kernel = weights[oc * input_shape[0] + ic];
+        for (int c_in = 0; c_in < input_shape[0]; ++c_in) {
 
-            // Compute gradients for weights
-            for (int i = 0; i < kernel.rows(); ++i) {
-                for (int j = 0; j < kernel.cols(); ++j) {
-                    // Extract region for convolution
-                    Eigen::MatrixXf region = input_channel.block(i, j, grad_output_channel.rows(), grad_output_channel.cols());
-                    grad_weights[oc * input_shape[0] + ic](i, j) += (region.array() * grad_output_channel.array()).sum();
-                }
-            }
+            // Weight gradient computation using valid convolution
+            for (int i = 0; i < output_shape[1]; ++i) {
+                for (int j = 0; j < output_shape[2]; ++j) {
+                    int start_row = i * stride_;
+                    int start_col = j * stride_;
 
-            // Compute gradients for input
-            Eigen::MatrixXf flipped_kernel = kernel.colwise().reverse().rowwise().reverse();
-            Eigen::MatrixXf grad_input_channel = Eigen::MatrixXf::Zero(input_shape[1], input_shape[2]);
-
-            for (int i = 0; i < input_shape[1]; ++i) {
-                for (int j = 0; j < input_shape[2]; ++j) {
-                    // Calculate region in grad_output_channel
-                    int start_row = i - padding_;
-                    int start_col = j - padding_;
-                    int end_row = start_row + kernel_size_;
-                    int end_col = start_col + kernel_size_;
-
-                    // Perform boundary checks
-                    if (start_row >= 0 && start_col >= 0 && end_row <= grad_output_channel.rows() && end_col <= grad_output_channel.cols()) {
-                        Eigen::MatrixXf region = grad_output_channel.block(start_row, start_col, kernel_size_, kernel_size_);
-                        grad_input_channel(i, j) += (region.array() * flipped_kernel.array()).sum();
+                    // Check if the kernel goes out of bounds
+                    if (start_row + kernel_size_ > cache_input[c_in].rows() || 
+                        start_col + kernel_size_ > cache_input[c_in].cols()) {
+                        continue; // Skip this position
                     }
+
+                    // Extract the valid region from the input
+                    Eigen::MatrixXf region = cache_input[c_in].block(start_row, start_col, kernel_size_, kernel_size_);
+
+                    // Accumulate gradients for weights
+                    Eigen::MatrixXf region_flat = Eigen::Map<Eigen::MatrixXf>(region.data(), 1, region.size());
+                    grad_weights[c_out].row(c_in) += region_flat * grad_output_channel(i, j);
                 }
             }
 
-            // Accumulate gradient for the current input channel
-            grad_input[ic] += grad_input_channel;
+            // Extract the weight kernel for this output-input channel pair
+            Eigen::MatrixXf kernel = weights[c_out].row(c_in);
+            kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
+
+            // Flip the kernel 180 degrees for convolution. 
+            Eigen::MatrixXf flipped_kernel = kernel.colwise().reverse().rowwise().reverse();
+
+            // Compute the gradient for the input tensor using full convolution
+            Eigen::MatrixXf grad_output_padded = Eigen::MatrixXf::Zero(
+                grad_output_channel.rows() + 2 * (kernel_size_ - 1),
+                grad_output_channel.cols() + 2 * (kernel_size_ - 1)
+            );
+
+            grad_output_padded.block(kernel_size_ - 1, kernel_size_ - 1, 
+                                     grad_output_channel.rows(), grad_output_channel.cols()) = grad_output_channel;
+
+            for (int i = 0; i < grad_output_channel.rows(); ++i) {
+                for (int j = 0; j < grad_output_channel.cols(); ++j) {
+                    Eigen::MatrixXf region = grad_output_padded.block(i, j, kernel_size_, kernel_size_);
+                    grad_input[c_in](i, j) += (region.array() * flipped_kernel.array()).sum();
+                }
+            }
         }
     }
 
-
-    // Return the computed gradient tensor
+    // Return the computed gradient tensor for input
     return grad_input;
 }

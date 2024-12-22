@@ -41,6 +41,8 @@ public:
     Conv2D(int input_channels, int output_channels, 
                         int kernel_size, int stride = 1, int padding = 0);
 
+    ~Conv2D() = default;
+
     // Forward pass
     Tensor forward(const Tensor& input) override;
 
