@@ -49,6 +49,17 @@ public:
         return {data_.size(), data_[0].rows(), data_[0].cols()};
     }
 
+    void print_shape() const {
+        auto [depth, rows, cols] = shape();
+        std::cout << "Depth: " << depth << ", Rows: " << rows << ", Cols: " << cols << std::endl;
+    }
+
+    void set_random() {
+        for (auto& matrix : data_) {
+            matrix = Eigen::MatrixXf::Random(matrix.rows(), matrix.cols());
+        }
+    }
+
     // Utility for resizing the tensor
     void resize(size_t depth, size_t rows, size_t cols) {
         data_.resize(depth, Eigen::MatrixXf::Zero(rows, cols));
@@ -163,6 +174,15 @@ public:
             throw std::runtime_error("Tensor does not contain a single matrix.");
         }
         return data_[0];
+    }
+
+    // Overload the << operator for printing
+    friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
+        for (size_t c = 0; c < tensor.depth(); ++c) {
+            os << "Channel " << c << ":\n";
+            os << tensor.data_[c] << "\n";
+        }
+        return os;
     }
 
     // Iterators for easy traversal
