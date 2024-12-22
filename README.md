@@ -80,16 +80,29 @@ for (int epoch = 0; epoch < 10; ++epoch) {
    float loss = loss_fn.forward(output, one_hot_targets);
    std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
 
-   // Backward pass
-   Tensor grad = loss_fn.backward();  // Backprop through loss function
-   model.backward(grad);                      // Backprop through layers
+   model.backward(grad); // Backprop through layers
 
-   // Update weights
-   model.optimize();
+   model.optimize(); // Update weights
 }
 ```
 
 ### Callbacks
+
+Callbacks are only supported natively with the built-in `model.Train()` method, which monitors trigger points during training. You may also implement your own callbacks by extending the `Callback` class.
+
+```cpp
+// Stop training if loss does not improve for 5 epochs
+EarlyStopping early_stopping(5);
+
+// Print loss every 10 epochs
+PrintLoss print_loss(10);
+
+// Add callbacks to the model
+model.add_callback(&early_stopping);
+
+// Train using the convenience API
+model.Train(input_tensor, one_hot_targets, 50, loss_fn);
+```
 
 ### Data Utilities
 

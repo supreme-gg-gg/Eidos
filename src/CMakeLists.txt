@@ -14,6 +14,20 @@ target_link_libraries(main PRIVATE Eigen3::Eigen)
 # Add option for compiling demo executables
 option(BUILD_DEMO_EXECUTABLES "Build demo executables" OFF)
 
+# Add option for enabling debug mode
+option(DEBUG_MODE "Enable debug mode" ON)
+
+# If debug mode is enabled, set debug-specific configurations
+if(DEBUG_MODE)
+    message(STATUS "Debug mode is enabled.")
+    set(CMAKE_BUILD_TYPE Debug)
+    add_definitions(-DDEBUG_MODE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
+else()
+    message(STATUS "Debug mode is disabled.")
+endif()
+
 # If the option is ON, compile the demo executables
 if(BUILD_DEMO_EXECUTABLES)
     message(STATUS "Building demo executables.")

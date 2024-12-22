@@ -12,6 +12,8 @@ file(GLOB TEST_FILES
     ../src/dense_layer.cpp
     ../src/activation_fns.cpp
     ../src/optimizer.cpp
+    ../src/conv_layer.cpp
+    ../src/pooling_layer.cpp
 )
 
 # Add the test executable and link it with Google Test, and your project library (computer_vision_lib)

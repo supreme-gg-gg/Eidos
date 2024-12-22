@@ -14,6 +14,17 @@ public:
     Tensor(size_t depth, size_t rows, size_t cols)
         : data_(depth, Eigen::MatrixXf::Zero(rows, cols)) {}
 
+    // Constructor to initialize a tensor with a vector of dimensions
+    Tensor(const std::vector<int>& dimensions) {
+        if (dimensions.size() != 3) {
+            throw std::invalid_argument("Dimensions vector must have exactly 3 elements.");
+        }
+        size_t depth = dimensions[0];
+        size_t rows = dimensions[1];
+        size_t cols = dimensions[2];
+        data_.resize(depth, Eigen::MatrixXf::Zero(rows, cols));
+    }
+
     // Constructor to initialize from a single matrix
     explicit Tensor(const Eigen::MatrixXf& matrix) {
         data_.push_back(matrix);
@@ -32,6 +43,11 @@ public:
         return data_[index];
     }
 
+    // Access element by depth, row, and column (const and non-const)
+    float& operator()(size_t depth, size_t row, size_t col) {
+        return data_[depth](row, col);
+    }
+
     // Get the depth (number of matrices)
     size_t depth() const {
         return data_.size();
@@ -41,6 +57,17 @@ public:
     std::tuple<size_t, size_t, size_t> shape() const {
         if (data_.empty()) return {0, 0, 0};
         return {data_.size(), data_[0].rows(), data_[0].cols()};
+    }
+
+    void print_shape() const {
+        auto [depth, rows, cols] = shape();
+        std::cout << "Depth: " << depth << ", Rows: " << rows << ", Cols: " << cols << std::endl;
+    }
+
+    void set_random() {
+        for (auto& matrix : data_) {
+            matrix = Eigen::MatrixXf::Random(matrix.rows(), matrix.cols());
+        }
     }
 
     // Utility for resizing the tensor
@@ -157,6 +184,15 @@ public:
             throw std::runtime_error("Tensor does not contain a single matrix.");
         }
         return data_[0];
+    }
+
+    // Overload the << operator for printing
+    friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
+        for (size_t c = 0; c < tensor.depth(); ++c) {
+            os << "Channel " << c << ":\n";
+            os << tensor.data_[c] << "\n";
+        }
+        return os;
     }
 
     // Iterators for easy traversal

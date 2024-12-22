@@ -37,6 +37,10 @@ void Model::set_optimizer(Optimizer& opt) {
     optimizer = &opt;
 }
 
+void Model::set_loss_function(Loss& loss) {
+    loss_function = &loss;
+}
+
 void Model::set_train() {
     training = true;
     for (auto& layer : layers) {
@@ -57,6 +61,14 @@ Tensor Model::forward(const Tensor& input) {
         output = layer->forward(output);
     }
     return output;
+}
+
+void Model::backward() {
+    if (loss_function == nullptr) {
+        Console::log("No loss function provided. Backward pass aborted.", Console::ERROR);
+        return;
+    }
+    backward(loss_function->backward());
 }
 
 void Model::backward(const Tensor& grad_output) {
@@ -112,20 +124,15 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels, in
         // Notify callbacks at the end of the epoch
         for (auto& callback : callbacks) {
             callback->on_epoch_end(epoch, average_loss);
-
-            if (auto early_stopping = dynamic_cast<EarlyStopping*>(callback)) {
-                if (early_stopping->should_stop()) {
-                    stop_training = true;
-                }
+            if (callback->should_stop()) {
+                stop_training = true;
             }
         }
 
         if (stop_training) {
-            std::cout << "Stopping early at epoch " << epoch << "!" << std::endl;
+            std::cout << "Stopping at epoch " << epoch << "!" << std::endl;
             break;
         }
-
-        std::cout << "Epoch " << epoch << " completed. Average Loss: " << average_loss << std::endl;
     }
 }
 
