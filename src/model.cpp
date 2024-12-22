@@ -37,6 +37,10 @@ void Model::set_optimizer(Optimizer& opt) {
     optimizer = &opt;
 }
 
+void Model::set_loss_function(Loss& loss) {
+    loss_function = &loss;
+}
+
 void Model::set_train() {
     training = true;
     for (auto& layer : layers) {
@@ -57,6 +61,14 @@ Tensor Model::forward(const Tensor& input) {
         output = layer->forward(output);
     }
     return output;
+}
+
+void Model::backward() {
+    if (loss_function == nullptr) {
+        Console::log("No loss function provided. Backward pass aborted.", Console::ERROR);
+        return;
+    }
+    backward(loss_function->backward());
 }
 
 void Model::backward(const Tensor& grad_output) {
