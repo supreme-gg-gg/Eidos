@@ -17,10 +17,9 @@ int main() {
     std::string csvPath;
     std::cout << "Enter the path to the CSV file: ";
     std::getline(std::cin, csvPath);
-    NumericDataLoader loader(csvPath, "Species");
-    loader.shuffle().z_score_normalize();
-    loader.print_preview();
-    auto data = loader.train_test_split(0.8f, 1);
+    NumericDataLoader loader(csvPath, "label");
+    loader.shuffle();
+    auto data = loader.train_test_split_image(28, 28, 0.8f);
     // Create and set up the model
     /*
     Model model;
@@ -36,28 +35,28 @@ int main() {
     model.Add(new LeakyReLU());
     model.Add(new DenseLayer(32, data.num_classes())); 
     */
-    Model model;
-    model.Add(new DenseLayer(data.num_features(), 32));
-    model.Add(new BatchNorm(32));
-    model.Add(new LeakyReLU());
-    model.Add(new Dropout(0.2));
-    model.Add(new DenseLayer(32, 16));
-    model.Add(new BatchNorm(16));
-    model.Add(new LeakyReLU());
-    model.Add(new DenseLayer(16, 8));
-    model.Add(new BatchNorm(8));
-    model.Add(new LeakyReLU());
-    model.Add(new DenseLayer(8, data.num_classes()));
+    // Model model;
+    // model.Add(new DenseLayer(data.num_features(), 32));
+    // model.Add(new BatchNorm(32));
+    // model.Add(new LeakyReLU());
+    // model.Add(new Dropout(0.2));
+    // model.Add(new DenseLayer(32, 16));
+    // model.Add(new BatchNorm(16));
+    // model.Add(new LeakyReLU());
+    // model.Add(new DenseLayer(16, 8));
+    // model.Add(new BatchNorm(8));
+    // model.Add(new LeakyReLU());
+    // model.Add(new DenseLayer(8, data.num_classes()));
 
-    // Set optimizer and loss function
-    Adam optimizer(0.01);
-    CrossEntropyLoss loss_fn;
+    // // Set optimizer and loss function
+    // Adam optimizer(0.01);
+    // CrossEntropyLoss loss_fn;
 
-    // Training
-    model.Train(data.training.inputs, data.training.targets, 20, loss_fn, &optimizer);
+    // // Training
+    // model.Train(data.training.inputs, data.training.targets, 20, loss_fn, &optimizer);
 
-    // Testing
-    model.Test(data.testing.inputs, data.testing.targets, loss_fn);
+    // // Testing
+    // model.Test(data.testing.inputs, data.testing.targets, loss_fn);
 
     return 0;
 }

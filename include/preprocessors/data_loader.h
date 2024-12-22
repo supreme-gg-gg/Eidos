@@ -1,6 +1,7 @@
 #ifndef DATA_LOADER_H
 #define DATA_LOADER_H
 
+#include "../tensor.hpp"
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
@@ -21,6 +22,26 @@ struct InputData {
     InputData(size_t num_features, size_t num_classes) : training(), testing(), num_features_(num_features), num_classes_(num_classes) {}
     InputData(const Dataset& training, const Dataset& testing, const size_t num_features, const size_t num_classes) : training(training), testing(testing), num_features_(num_features), num_classes_(num_classes) {}
     InputData() = default;
+private:
+    size_t num_features_;
+    size_t num_classes_;
+};
+
+struct ImageDataset {
+    std::vector<Tensor> inputs;
+    std::vector<Tensor> targets;
+    ImageDataset(const std::vector<Tensor>& inputs, const std::vector<Tensor>& targets) : inputs(inputs), targets(targets) {}
+    ImageDataset() = default;
+};
+
+struct ImageInputData {
+    ImageDataset training;
+    ImageDataset testing;
+    size_t num_features() const { return num_features_; }
+    size_t num_classes() const { return num_classes_; }
+    ImageInputData(size_t num_features, size_t num_classes) : training(), testing(), num_features_(num_features), num_classes_(num_classes) {}
+    ImageInputData(const ImageDataset& training, const ImageDataset& testing, const size_t num_features, const size_t num_classes) : training(training), testing(testing), num_features_(num_features), num_classes_(num_classes) {}
+    ImageInputData() = default;
 private:
     size_t num_features_;
     size_t num_classes_;

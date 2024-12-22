@@ -6,6 +6,7 @@
 #ifndef NUMERIC_DATA_LOADER_H
 #define NUMERIC_DATA_LOADER_H
 
+#include "data_loader.h"
 #include "../tensor.hpp"
 #include <string>
 #include <vector>
@@ -42,6 +43,8 @@ public:
      * @return InputData structure containing split data.
      */
     InputData train_test_split(float trainToTestSplitRatio = 0.8f, int batch_size = 1);
+
+    ImageInputData train_test_split_image(size_t reshaped_rows, size_t reshaped_cols, float trainToTestSplitRatio = 0.8f);
 
     /**
      * @brief Shuffles the data.

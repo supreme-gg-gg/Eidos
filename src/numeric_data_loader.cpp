@@ -206,6 +206,51 @@ InputData NumericDataLoader::train_test_split(float trainToTestSplitRatio, int b
     return result;
 }
 
+ImageInputData NumericDataLoader::train_test_split_image(size_t reshaped_rows, size_t reshaped_cols, float trainToTestSplitRatio) {
+    if (trainToTestSplitRatio < 0.0f || trainToTestSplitRatio > 1.0f) {
+        throw std::invalid_argument("Invalid train-test split ratio. (Expected: 0.0-1.0)");
+    }
+    size_t numTrainSamples = static_cast<size_t>(features_.rows() * trainToTestSplitRatio);
+    size_t numTestSamples = features_.rows() - numTrainSamples;
+    
+    ImageInputData result(features_.cols(), oneHotMapping_.size());
+    for (size_t i = 0; i < numTrainSamples; ++i) {
+        Eigen::MatrixXf reshaped_features = features_.row(i).reshaped(reshaped_cols, reshaped_rows).transpose();
+        
+        result.training.inputs.push_back(Tensor({reshaped_features, reshaped_features, reshaped_features}));
+        result.training.targets.push_back(Tensor(labels_.row(i)));
+    }
+    for (size_t i = numTrainSamples; i < numTrainSamples+numTestSamples; ++i) {
+        Eigen::MatrixXf reshaped_features = features_.row(i).reshaped(reshaped_cols, reshaped_rows).transpose();
+        
+        result.testing.inputs.push_back(Tensor({reshaped_features, reshaped_features, reshaped_features}));
+        result.testing.targets.push_back(Tensor(labels_.row(i)));
+    }
+
+    // Debug print the content of result
+    
+    for (size_t i = 0; i < result.training.inputs.size(); ++i) {
+        std::stringstream ss;
+        ss << "Training sample " << i << " number of channels:" << result.training.inputs[i].depth() << "\nFeatures:\n" << result.training.inputs[i][0];
+        Console::log(ss.str(), Console::DEBUG);
+        ss.str("");
+        ss << "Training sample " << i << " labels:\n" << result.training.targets[i].getSingleMatrix();
+        Console::log(ss.str(), Console::DEBUG);
+    }
+    /*for (size_t i = 0; i < result.testing.inputs.depth(); ++i) {
+        std::stringstream ss;
+        ss << "Testing batch " << i << " features:\n" << result.testing.inputs[i];
+        Console::log(ss.str(), Console::DEBUG);
+        ss.str("");
+        ss << "Testing batch " << i << " labels:\n" << result.testing.targets[i];
+        Console::log(ss.str(), Console::DEBUG);
+    }
+    */
+    
+    
+    return result;
+}
+
 NumericDataLoader& NumericDataLoader::shuffle() {
     std::vector<size_t> indices(features_.rows());
     std::iota(indices.begin(), indices.end(), 0);
