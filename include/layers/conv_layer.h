@@ -6,6 +6,19 @@
 #include "../layer.h"
 #include "../tensor.hpp"
 
+/**
+ * @class Conv2D
+ * @brief Represents a 2D convolutional layer in a neural network.
+ *
+ * This class implements a 2D convolutional layer which is a fundamental building block
+ * in convolutional neural networks (CNNs). It performs convolution operations on the input data.
+ *
+ * @param input_channels The number of input channels (depth) of the input data.
+ * @param output_channels The number of output channels (depth) of the output data.
+ * @param kernel_size The size of the convolutional kernel (filter).
+ * @param stride The stride of the convolution operation. Default is 1.
+ * @param padding The amount of zero-padding added to the input data. Default is 0.
+ */
 class Conv2D: public Layer {
 private:
     std::vector<Eigen::MatrixXf> weights;    // Weights for each filter
