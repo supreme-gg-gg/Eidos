@@ -124,20 +124,15 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels, in
         // Notify callbacks at the end of the epoch
         for (auto& callback : callbacks) {
             callback->on_epoch_end(epoch, average_loss);
-
-            if (auto early_stopping = dynamic_cast<EarlyStopping*>(callback)) {
-                if (early_stopping->should_stop()) {
-                    stop_training = true;
-                }
+            if (callback->should_stop()) {
+                stop_training = true;
             }
         }
 
         if (stop_training) {
-            std::cout << "Stopping early at epoch " << epoch << "!" << std::endl;
+            std::cout << "Stopping at epoch " << epoch << "!" << std::endl;
             break;
         }
-
-        std::cout << "Epoch " << epoch << " completed. Average Loss: " << average_loss << std::endl;
     }
 }
 
