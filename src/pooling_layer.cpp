@@ -5,13 +5,16 @@
 MaxPooling2D::MaxPooling2D(int pool_size, int stride) : pool_size(pool_size), stride(stride) {}
 
 Tensor MaxPooling2D::forward(const Tensor& input) {
+    // Initialize the input tensor and shapes
     this->input = input;
     std::tuple<int, int, int> shape = input.shape();
     int channels = std::get<0>(shape);
     int height = std::get<1>(shape);
     int width = std::get<2>(shape);
+    this->input_shape = {channels, height, width};
     int output_height = (height - pool_size) / stride + 1;
     int output_width = (width - pool_size) / stride + 1;
+    this->output_shape = {channels, output_height, output_width};
     Tensor output = Tensor(channels, output_height, output_width);
     this->mask = Tensor(channels, output_height, output_width);
 
@@ -34,21 +37,17 @@ Tensor MaxPooling2D::forward(const Tensor& input) {
 }
 
 Tensor MaxPooling2D::backward(const Tensor& grad_output) {
-    std::tuple<int, int, int> shape = grad_output.shape();
-    int channels = std::get<0>(shape);
-    int height = std::get<1>(shape);
-    int width = std::get<2>(shape);
-    Tensor grad_input = Tensor(channels, height * stride, width * stride);
+    Tensor grad_input = Tensor(input_shape[0], input_shape[1], input_shape[2]);
 
     // iterate over each channel independently
-    for (int c = 0; c < channels; c++) {
+    for (int c = 0; c < output_shape[0]; c++) { // channel
         // Get gradient and mask for current channel
         Eigen::MatrixXf grad_channel = grad_output[c];
         Eigen::MatrixXf mask_channel = this->mask[c];
 
         // Unravel the mask to get the indices of the max values
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
+        for (int i = 0; i < output_shape[1]; i++) { // height
+            for (int j = 0; j < output_shape[2]; j++) { // width
                 int max_idx = mask_channel(i, j);
                 int max_i = max_idx / pool_size;
                 int max_j = max_idx % pool_size;
@@ -70,8 +69,10 @@ Tensor AveragePooling2D::forward(const Tensor& input) {
     int channels = std::get<0>(shape);
     int height = std::get<1>(shape);
     int width = std::get<2>(shape);
+    this->input_shape = {channels, height, width};
     int output_height = (height - pool_size) / stride + 1;
     int output_width = (width - pool_size) / stride + 1;
+    this->output_shape = {channels, output_height, output_width};
     Tensor output = Tensor(channels, output_height, output_width);
 
     // iterate over each channel independently
@@ -90,17 +91,13 @@ Tensor AveragePooling2D::forward(const Tensor& input) {
 }
 
 Tensor AveragePooling2D::backward(const Tensor& grad_output) {
-    std::tuple<int, int, int> shape = grad_output.shape();
-    int channels = std::get<0>(shape);
-    int height = std::get<1>(shape);
-    int width = std::get<2>(shape);
-    Tensor grad_input = Tensor(channels, height * stride, width * stride);
+    Tensor grad_input = Tensor(input_shape[0], input_shape[1], input_shape[2]);
 
     // iterate over each channel independently
-    for (int c = 0; c < channels; c++) {
+    for (int c = 0; c < output_shape[0]; c++) {
         Eigen::MatrixXf grad_channel = grad_output[c];
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
+        for (int i = 0; i < output_shape[1]; i++) {
+            for (int j = 0; j < output_shape[2]; j++) {
                 grad_input(c, i * stride, j * stride) += grad_channel(i, j) / (pool_size * pool_size);
             }
         }

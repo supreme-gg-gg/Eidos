@@ -17,6 +17,8 @@ public:
 private:
     int pool_size;
     int stride;
+    std::vector<int> input_shape;
+    std::vector<int> output_shape;
     Tensor input;
     Tensor mask;
 };
@@ -34,6 +36,8 @@ public:
 private:
     int pool_size;
     int stride;
+    std::vector<int> input_shape;
+    std::vector<int> output_shape;
     Tensor input;
     Tensor mask;
 };
