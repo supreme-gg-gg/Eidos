@@ -14,6 +14,17 @@ public:
     Tensor(size_t depth, size_t rows, size_t cols)
         : data_(depth, Eigen::MatrixXf::Zero(rows, cols)) {}
 
+    // Constructor to initialize a tensor with a vector of dimensions
+    Tensor(const std::vector<int>& dimensions) {
+        if (dimensions.size() != 3) {
+            throw std::invalid_argument("Dimensions vector must have exactly 3 elements.");
+        }
+        size_t depth = dimensions[0];
+        size_t rows = dimensions[1];
+        size_t cols = dimensions[2];
+        data_.resize(depth, Eigen::MatrixXf::Zero(rows, cols));
+    }
+
     // Constructor to initialize from a single matrix
     explicit Tensor(const Eigen::MatrixXf& matrix) {
         data_.push_back(matrix);
@@ -36,6 +47,11 @@ public:
             throw std::out_of_range("Index out of range.");
         }
         return data_[index];
+    }
+
+    // Access element by depth, row, and column (const and non-const)
+    float& operator()(size_t depth, size_t row, size_t col) {
+        return data_[depth](row, col);
     }
 
     // Get the depth (number of matrices)

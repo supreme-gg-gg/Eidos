@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include "../include/layers/dense_layer.h"
-#include "../include/loss_fns.h"
 
 TEST(DenseLayerTest, ForwardPassCorrectShape) {
     DenseLayer layer(10, 5); // 10 input features, 5 outputs

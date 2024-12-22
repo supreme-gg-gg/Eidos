@@ -26,9 +26,28 @@ private:
     std::vector<std::unique_ptr<Layer> > layers; // Vector of unique pointers to layers
     std::vector<Callback*> callbacks;  // List of callbacks
     Optimizer* optimizer; // Pointer to the optimizer used for training the model
+    Loss* loss_function; // Pointer to the loss function used for training the model
     bool training = true;
 
 public:
+
+    /**
+     * @brief Constructs a new Model object with default values.
+     * 
+     * Initializes the optimizer and loss_function pointers to nullptr.
+     */
+    Model() : optimizer(nullptr), loss_function(nullptr) {};
+
+    /**
+     * @brief Constructs a new Model object with the specified optimizer and loss function.
+     * 
+     * @param optimizer Pointer to the optimizer to be used by the model.
+     * @param loss_function Pointer to the loss function to be used by the model.
+     * 
+     * @note The optimizer and loss function can be set later using the `set_optimizer` and `set_loss_function` methods.
+     */
+    Model(Optimizer& optimizer, Loss& loss_function) : optimizer(&optimizer), loss_function(&loss_function) {}
+
     /**
      * @brief Adds a new layer to the model.
      * 
@@ -51,6 +70,13 @@ public:
      * @param opt Reference to the optimizer to be used.
      */
     void set_optimizer(Optimizer& opt);
+
+    /**
+     * @brief Sets the loss function for the model.
+     * 
+     * @param loss Reference to the loss function to be used.
+     */
+    void set_loss_function(Loss& loss);
     
     /**
      * @brief Performs the forward pass of the model.
@@ -73,6 +99,14 @@ public:
      * @param grad_output The gradient of the loss with respect to the output of the model. This is a matrix of the same shape as the model's output.
      */
     void backward(const Tensor& grad_output);
+
+    /**
+     * @brief Performs the backward pass of the model, computing the gradient of the loss with respect to the model's parameters.
+     * 
+     * @note This method requires that a loss function has been set already. Otherwise, you can manualy
+     * compute the loss gradient and pass it to the overloaded `backward` method.
+     */
+    void backward();
 
     /**
      * @brief Optimizes the model parameters.
