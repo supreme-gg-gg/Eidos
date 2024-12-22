@@ -1,6 +1,7 @@
 #include "../include/layers/regularization.h"
 #include "../include/tensor.hpp"
 #include <Eigen/Dense>
+#include "../include/console.hpp"
 
 Dropout::Dropout(float probability) : probability(probability) {}
 
@@ -42,6 +43,11 @@ Tensor BatchNorm::forward(const Tensor& input) {
 
     Eigen::MatrixXf input_mat = input.getSingleMatrix();
 
+    if (input_mat.rows() == 1) {
+        Console::log("Using BatchNorm with a single sample. This will cause unintended behaviour. Consider using LayerNorm instead.", Console::WARNING);
+        Console::log("George is mad at such a small batch size. He's a Georgist, after all.", Console::WORSHIP);
+    }
+
     // Compute mean across columns (features)
     mean = input_mat.colwise().mean();
     
@@ -49,7 +55,7 @@ Tensor BatchNorm::forward(const Tensor& input) {
     centered_input = input_mat.rowwise() - mean.transpose();
     
     // Compute variance
-    variance = (centered_input.array().square().colwise().sum()) / (input_mat.rows() - 1);
+    variance = (centered_input.array().square().colwise().sum()) / (input_mat.rows() - 1 + epsilon);
     
     if (training) {
         // Update running statistics
