@@ -36,10 +36,16 @@ public:
 
     // Access element by depth and indices (const and non-const)
     Eigen::MatrixXf& operator[](size_t index) {
+        if (index < 0 || index >= data_.size()) {
+            throw std::out_of_range("Index out of range.");
+        }
         return data_[index];
     }
 
     const Eigen::MatrixXf& operator[](size_t index) const {
+        if (index < 0 || index >= data_.size()) {
+            throw std::out_of_range("Index out of range.");
+        }
         return data_[index];
     }
 
