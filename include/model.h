@@ -12,6 +12,7 @@
 #include "loss.h"
 #include "callback.h"
 #include "tensor.hpp"
+#include "preprocessors.h"
 
 /**
  * @class Model
@@ -156,7 +157,22 @@ public:
      * @param loss_function The loss function to be used during training.
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
-    void Train(const Tensor& training_data, const Tensor& training_labels, int epochs, Loss& loss_function, Optimizer* optimizer=nullptr);
+    void Train(const Tensor& training_data, const Tensor& training_labels, 
+        int epochs, Loss& loss_function, Optimizer* optimizer=nullptr,
+        std::vector<Callback*> callbacks=std::vector<Callback*>());
+
+    /**
+     * @brief Tests the model using the provided testing data and labels.
+     * 
+     * @note This assumes that the data is not batched for training. It 
+     * treats each Tensor as a single image. There is no batching.
+     * 
+     * @param data A ImageInputData object containing the training input and labels.
+     */
+    
+    void Train(const ImageInputData& data,
+        int epochs, Loss& loss_function, Optimizer* optimizer=nullptr,
+        std::vector<Callback*> callbacks=std::vector<Callback*>());
 
     /**
      * @brief Tests the model using the provided testing data and labels.
@@ -168,6 +184,14 @@ public:
      * @param loss_function The loss function to evaluate the model's performance.
      */
     void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function);
+
+    /**
+     * @brief Tests the model using the provided image input data and computes the loss.
+     * 
+     * @param data The image input data to be used for testing the model.
+     * @param loss_function The loss function to be used for computing the loss.
+     */
+    void Test(ImageInputData& data, Loss& loss_function);
 
     /**
      * @brief Retrieves a pointer to the layer at the specified index.
