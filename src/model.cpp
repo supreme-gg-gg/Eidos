@@ -6,6 +6,7 @@
 #include "../include/optimizer.h"
 #include "../include/layers/flatten_layer.h"
 #include "../include/tensor.hpp"
+#include "../include/preprocessors.h"
 #include <fstream>
 #include <filesystem>
 #include <string>
@@ -84,9 +85,51 @@ void Model::optimize() const {
     }
 }
 
+void Model::Train(const ImageInputData& data,
+    int epochs, Loss& loss_function, Optimizer* optimizer,
+    std::vector<Callback*> callbacks) {
+
+    if (optimizer != nullptr) {
+        set_optimizer(*optimizer);
+    } else if (this->optimizer == nullptr) {
+        Console::log("No Optimizer provided. Training aborted.", Console::ERROR);
+        return;
+    }
+
+    set_train();
+    set_loss_function(loss_function);
+
+    bool stop_training = false;
+    for (int epoch = 0; epoch < epochs; ++epoch) {
+        float total_loss = 0.0;
+        for (size_t i = 0; i < data.training.inputs.size(); ++i) {
+            Tensor output = forward(data.training.inputs[i]);
+            float loss = loss_function.forward(output, data.training.targets[i]);
+            total_loss += loss;
+            backward();
+            optimize();
+        }
+        float average_loss = total_loss / data.training.inputs.size();
+        
+        // Notify callbacks at the end of the epoch
+        for (auto& callback : callbacks) {
+            callback->on_epoch_end(epoch, average_loss);
+            if (callback->should_stop()) {
+                stop_training = true;
+            }
+        }
+
+        if (stop_training) {
+            std::cout << "Stopping at epoch " << epoch << "!" << std::endl;
+            break;
+        }
+    }
+}
+
 void Model::Train(const Tensor& training_data, const Tensor& training_labels, 
     int epochs, Loss& loss_function, Optimizer* optimizer,
     std::vector<Callback*> callbacks) {
+
     set_train();
     // Optimizer can either be set in the model or passed as an argument
     if (optimizer != nullptr) {
@@ -161,4 +204,32 @@ void Model::Test(const Tensor& testing_data, const Tensor& testing_labels, Loss&
     float accuracy = static_cast<float>(correct_predictions) / outputs[0].rows();
     std::cout << "Test Loss: " << loss << std::endl;
     std::cout << "Test Accuracy: " << accuracy * 100 << "%" << std::endl;
+}
+
+void Model::Test(ImageInputData& data, Loss& loss_function) {
+    set_inference();
+    float test_loss = 0.0;
+    int correct_predictions = 0;
+    for (size_t i = 0; i < data.testing.inputs.size(); ++i) {
+        Tensor output = forward(data.testing.inputs[i]);
+        float loss = loss_function.forward(output, data.testing.targets[i]);
+        test_loss += loss;
+
+        // Flatten the output to a vector
+        Eigen::VectorXf flat_output = Eigen::Map<Eigen::VectorXf>(output[0].data(), output[0].size());
+        int predicted_class = 0;
+        flat_output.maxCoeff(&predicted_class); // Get the maximum score index
+
+        // Flatten the target to a vector
+        Eigen::VectorXf target_vector = Eigen::Map<Eigen::VectorXf>(data.testing.targets[i][0].data(), data.testing.targets[i][0].size());
+        int true_class = 0;
+        target_vector.maxCoeff(&true_class); // Get the true class index
+
+        if (predicted_class == true_class) {
+            ++correct_predictions;
+        }
+    }
+    float accuracy = static_cast<float>(correct_predictions) / data.testing.inputs.size();
+    std::cout << "Test Loss: " << test_loss / data.testing.inputs.size() << std::endl;
+    std::cout << "Test Accuracy: " << accuracy * 100.0 << "%" << std::endl;
 }
