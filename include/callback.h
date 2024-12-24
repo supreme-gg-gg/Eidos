@@ -2,7 +2,10 @@
 #define CALLBACK_H
 
 #include <iostream>
+#include <fstream>
 #include <limits>
+
+class Model; // Forward declaration
 
 /**
  * @class Callback
@@ -171,4 +174,34 @@ public:
     }
 };
 
+
+// Some member functions of SaveModel are defined in a separate source file to avoid circular dependencies
+/**
+ * @class SaveModel
+ * @brief A callback class for saving the model to a file at specified intervals during training.
+ * 
+ * This class inherits from the Callback base class and provides functionality to save the model
+ * to a file at the end of an epoch if the epoch number is a multiple of the specified save interval.
+ */
+class SaveModel : public Callback {
+private:
+    int save_interval;
+    std::string save_path;
+    Model& parent;
+public:
+    SaveModel(Model& model, std::string save_path, int save_interval = 5) : parent(model), save_path(save_path), save_interval(save_interval) {}
+    
+    void on_epoch_end(int epoch, float loss) override;
+    
+    std::string get_name() const override { return "SaveModel"; }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        size_t path_size = save_path.size() + 1; // Include null terminator
+        toFileStream.write((char*)&path_size, sizeof(size_t));
+        toFileStream.write(save_path.c_str(), path_size);
+        toFileStream.write((char*)&save_interval, sizeof(int));
+    }
+
+    static SaveModel* deserialize(std::ifstream& fromFileStream, Model& model);
+};
 #endif //CALLBACK_H

@@ -257,10 +257,7 @@ void Model::Serialize(std::string toFilePath, bool override_warning) {
         Console::log("Failed to open file for serialization", Console::ERROR);
         return;
     }
-    else {
-        Console::log("File opened for serialization", Console::DEBUG);
-    }
-
+    
     // Maximum size of layer name
     size_t NameBuffSize = 32;
     file.write(reinterpret_cast<char*>(&NameBuffSize), sizeof(size_t));
@@ -396,6 +393,8 @@ void Model::Deserialize(std::string fromFilePath) {
             callbacks.push_back(PrintLoss::deserialize(file));
         } else if (callback_fn_name == "EarlyStopping") {
             callbacks.push_back(EarlyStopping::deserialize(file));
+        } else if (callback_fn_name == "SaveModel") {
+            callbacks.push_back(SaveModel::deserialize(file, *this));
         }
         else {
             Console::log("Unknown callback: " + callback_fn_name, Console::ERROR);
