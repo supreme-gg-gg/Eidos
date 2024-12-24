@@ -208,8 +208,25 @@ public:
      */
     size_t num_layers() const;
 
-    void Serialize(std::string toFilePath, bool override_warning = true);
-    void Deserialize(std::string fromFilePath);
+    /**
+     * @brief Serializes the model to a file.
+     * 
+     * @param toFilePath The file path where the model will be saved.
+     * @param override_warning If true, the function will override the existing file without warning. Default is true.
+     * @param weights_only If true, only the model weights will be serialized. Default is true.
+     */
+    void Serialize(std::string toFilePath, bool override_warning = true, bool weights_only=true);
+    
+    /**
+     * @brief Deserializes the model from a file.
+     * 
+     * This function reads the model data from the specified file path and 
+     * reconstructs the model in memory.
+     * 
+     * @param fromFilePath The path to the file from which the model should be deserialized.
+     * @param weights_only If true, only the model weights will be deserialized. Default is true.
+     */
+    void Deserialize(std::string fromFilePath, bool weights_only=true);
 
     ~Model() = default;
 };

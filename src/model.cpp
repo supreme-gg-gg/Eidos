@@ -269,7 +269,7 @@ void Model::Test(ImageInputData& data, Loss* loss_function) {
     std::cout << "Test Accuracy: " << accuracy * 100.0 << "%" << std::endl;
 }
 
-void Model::Serialize(std::string toFilePath, bool override_warning) {
+void Model::Serialize(std::string toFilePath, bool override_warning, bool weights_only) {
     // Check if the file already exists
     if (std::filesystem::exists(toFilePath)) {
         if (override_warning) {
@@ -304,32 +304,34 @@ void Model::Serialize(std::string toFilePath, bool override_warning) {
         layer->serialize(file);
     }
     
-    // Write the set loss function and optimizer
-    if (loss_function != nullptr) {
-        file.write(reinterpret_cast<const char*>(loss_function->get_name().c_str()), NameBuffSize);
-    } else {
-        std::string empty = "";
-        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
-    }
-    if (optimizer != nullptr) {
-        file.write(reinterpret_cast<const char*>(optimizer->get_name().c_str()), NameBuffSize);
-        optimizer->serialize(file);
-    } else {
-        std::string empty = "";
-        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
-    }
+    if (!weights_only){
+        // Write the set loss function and optimizer
+        if (loss_function != nullptr) {
+            file.write(reinterpret_cast<const char*>(loss_function->get_name().c_str()), NameBuffSize);
+        } else {
+            std::string empty = "";
+            file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+        }
+        if (optimizer != nullptr) {
+            file.write(reinterpret_cast<const char*>(optimizer->get_name().c_str()), NameBuffSize);
+            optimizer->serialize(file);
+        } else {
+            std::string empty = "";
+            file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+        }
 
-    size_t num_callbacks = callbacks.size();
-    file.write(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
-    for (auto& callback : callbacks) {
-        file.write(reinterpret_cast<const char*>(callback->get_name().c_str()), NameBuffSize);
-        callback->serialize(file);
+        size_t num_callbacks = callbacks.size();
+        file.write(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
+        for (auto& callback : callbacks) {
+            file.write(reinterpret_cast<const char*>(callback->get_name().c_str()), NameBuffSize);
+            callback->serialize(file);
+        }
     }
 
     file.close();
 }
 
-void Model::Deserialize(std::string fromFilePath) {
+void Model::Deserialize(std::string fromFilePath, bool weights_only) {
     std::ifstream file(fromFilePath, std::ios::binary);
     if (!file.is_open()) {
         Console::log("Failed to open file for deserialization", Console::ERROR);
@@ -356,6 +358,10 @@ void Model::Deserialize(std::string fromFilePath) {
             layers.emplace_back(MaxPooling2D::deserialize(file));
         } else if (layer_name == "AveragePooling2D") {
             layers.emplace_back(AveragePooling2D::deserialize(file));
+        } else if (layer_name == "RNN") {
+            layers.emplace_back(RNNLayer::deserialize(file));
+        } else if (layer_name == "GRU") {
+            layers.emplace_back(GRULayer::deserialize(file));
         } else if (layer_name == "Flatten") {
             layers.emplace_back(FlattenLayer::deserialize(file));
         } else if (layer_name == "ReLU") {
@@ -377,6 +383,11 @@ void Model::Deserialize(std::string fromFilePath) {
             Console::log("Unknown layer type: " + layer_name, Console::ERROR);
             return;
         }
+    }
+
+    if (weights_only) {
+        file.close();
+        return;
     }
     
     char* loss_name = (char*)malloc(NameBuffSize);
