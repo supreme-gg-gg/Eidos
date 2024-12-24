@@ -158,7 +158,7 @@ public:
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
     void Train(const Tensor& training_data, const Tensor& training_labels, 
-        int epochs, Loss& loss_function, Optimizer* optimizer=nullptr,
+        int epochs, Loss* loss_function = nullptr, Optimizer* optimizer=nullptr,
         std::vector<Callback*> callbacks=std::vector<Callback*>());
 
     /**
@@ -171,7 +171,7 @@ public:
      */
     
     void Train(const ImageInputData& data,
-        int epochs, Loss& loss_function, Optimizer* optimizer=nullptr,
+        int epochs, Loss* loss_function = nullptr, Optimizer* optimizer=nullptr,
         std::vector<Callback*> callbacks=std::vector<Callback*>());
 
     /**
@@ -183,7 +183,7 @@ public:
      * @param testing_labels A tensor containing the testing labels.
      * @param loss_function The loss function to evaluate the model's performance.
      */
-    void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function);
+    void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss* loss_function = nullptr);
 
     /**
      * @brief Tests the model using the provided image input data and computes the loss.
@@ -191,7 +191,7 @@ public:
      * @param data The image input data to be used for testing the model.
      * @param loss_function The loss function to be used for computing the loss.
      */
-    void Test(ImageInputData& data, Loss& loss_function);
+    void Test(ImageInputData& data, Loss* loss_function = nullptr);
 
     /**
      * @brief Retrieves a pointer to the layer at the specified index.

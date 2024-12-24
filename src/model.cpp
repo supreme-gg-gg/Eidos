@@ -88,7 +88,7 @@ void Model::optimize() const {
 }
 
 void Model::Train(const ImageInputData& data,
-    int epochs, Loss& loss_function, Optimizer* optimizer,
+    int epochs, Loss* loss_function, Optimizer* optimizer,
     std::vector<Callback*> callbacks) {
 
     if (optimizer != nullptr) {
@@ -97,24 +97,32 @@ void Model::Train(const ImageInputData& data,
         Console::log("No Optimizer provided. Training aborted.", Console::ERROR);
         return;
     }
-
+    if (loss_function != nullptr) {
+        set_loss_function(*loss_function);
+    } else if (this->loss_function == nullptr) {
+        Console::log("No Loss function provided. Training aborted.", Console::ERROR);
+        return;
+    }
+    if (!callbacks.empty()) {
+        this->callbacks = callbacks;
+    }
+    
     set_train();
-    set_loss_function(loss_function);
-
     bool stop_training = false;
     for (int epoch = 0; epoch < epochs; ++epoch) {
         float total_loss = 0.0;
         for (size_t i = 0; i < data.training.inputs.size(); ++i) {
             Tensor output = forward(data.training.inputs[i]);
-            float loss = loss_function.forward(output, data.training.targets[i]);
+            float loss = this->loss_function->forward(output, data.training.targets[i]);
             total_loss += loss;
             backward();
             optimize();
+            Console::log("Epoch: " + std::to_string(epoch) + " Sample: " + std::to_string(i) + " Loss: " + std::to_string(loss), Console::DEBUG);
         }
         float average_loss = total_loss / data.training.inputs.size();
         
         // Notify callbacks at the end of the epoch
-        for (auto& callback : callbacks) {
+        for (auto& callback : this->callbacks) {
             callback->on_epoch_end(epoch, average_loss);
             if (callback->should_stop()) {
                 stop_training = true;
@@ -129,7 +137,7 @@ void Model::Train(const ImageInputData& data,
 }
 
 void Model::Train(const Tensor& training_data, const Tensor& training_labels, 
-    int epochs, Loss& loss_function, Optimizer* optimizer,
+    int epochs, Loss* loss_function, Optimizer* optimizer,
     std::vector<Callback*> callbacks) {
 
     set_train();
@@ -139,6 +147,17 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels,
     } else if (this->optimizer == nullptr) {
         Console::log("No Optimizer provided. Training aborted.", Console::ERROR);
         return;
+    }
+    // Loss function can either be set in the model or passed as an argument
+    if (loss_function != nullptr) {
+        set_loss_function(*loss_function);
+    } else if (this->loss_function == nullptr) {
+        Console::log("No Loss function provided. Training aborted.", Console::ERROR);
+        return;
+    }
+    // Callbacks can be set in the model or passed as an argument
+    if (!callbacks.empty()) {
+        this->callbacks = callbacks;
     }
 
     // Split the data into batches
@@ -156,11 +175,11 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels,
             targets = training_labels.slice(i);
             // Forward pass
             Tensor outputs = forward(inputs);
-            float loss = loss_function.forward(outputs, targets);
+            float loss = this->loss_function->forward(outputs, targets);
             total_loss += loss;
 
             // Backward pass
-            Tensor grad_loss = loss_function.backward();
+            Tensor grad_loss = this->loss_function->backward();
             backward(grad_loss);
             // Optimize
             optimize();
@@ -169,7 +188,7 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels,
         float average_loss = total_loss / num_batches;
 
         // Notify callbacks at the end of the epoch
-        for (auto& callback : callbacks) {
+        for (auto& callback : this->callbacks) {
             callback->on_epoch_end(epoch, average_loss);
             if (callback->should_stop()) {
                 stop_training = true;
@@ -183,12 +202,19 @@ void Model::Train(const Tensor& training_data, const Tensor& training_labels,
     }
 }
 
-void Model::Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function) {
+void Model::Test(const Tensor& testing_data, const Tensor& testing_labels, Loss* loss_function) {
+    if (loss_function != nullptr) {
+        set_loss_function(*loss_function);
+    } else if (this->loss_function == nullptr) {
+        Console::log("No Loss function provided. Testing aborted.", Console::ERROR);
+        return;
+    }
+    
     set_inference();
     Tensor flattened_inputs(testing_data.flatten());
     Tensor flattened_labels(testing_labels.flatten());
     Tensor outputs = forward(flattened_inputs);
-    float loss = loss_function.forward(outputs, flattened_labels);
+    float loss = this->loss_function->forward(outputs, flattened_labels);
     int correct_predictions = 0;
     for (int i = 0; i < outputs.getSingleMatrix().rows(); ++i) {
         // Implement argmax manually
@@ -208,13 +234,20 @@ void Model::Test(const Tensor& testing_data, const Tensor& testing_labels, Loss&
     std::cout << "Test Accuracy: " << accuracy * 100 << "%" << std::endl;
 }
 
-void Model::Test(ImageInputData& data, Loss& loss_function) {
+void Model::Test(ImageInputData& data, Loss* loss_function) {
+    if (loss_function != nullptr) {
+        set_loss_function(*loss_function);
+    } else if (this->loss_function == nullptr) {
+        Console::log("No Loss function provided. Testing aborted.", Console::ERROR);
+        return;
+    }
+    
     set_inference();
     float test_loss = 0.0;
     int correct_predictions = 0;
     for (size_t i = 0; i < data.testing.inputs.size(); ++i) {
         Tensor output = forward(data.testing.inputs[i]);
-        float loss = loss_function.forward(output, data.testing.targets[i]);
+        float loss = this->loss_function->forward(output, data.testing.targets[i]);
         test_loss += loss;
 
         // Flatten the output to a vector
