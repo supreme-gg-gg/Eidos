@@ -88,6 +88,7 @@ public:
     std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
 
     std::string get_name() const override { return "Conv2D"; }
+    
     void serialize(std::ofstream& toFileStream) const override;
     static Conv2D* deserialize(std::ifstream& fromFileStream);
 

@@ -150,3 +150,48 @@ Tensor GRULayer::backward(const Tensor& grad_output_sequence) {
     // Gradient with respect to initial hidden state
     return Tensor(grad_h_next);
 }
+
+void GRULayer::serialize(std::ofstream& toFileStream) const {
+    // Serialize weights
+    for (const auto& weight : weights) {
+        Eigen::Index rows = weight.rows();
+        Eigen::Index cols = weight.cols();
+        toFileStream.write((char*)&rows, sizeof(Eigen::Index));
+        toFileStream.write((char*)&cols, sizeof(Eigen::Index));
+        toFileStream.write((char*)weight.data(), rows * cols * sizeof(float));
+    }
+
+    // Serialize biases
+    for (const auto& bias : biases) {
+        Eigen::Index rows = bias.rows();
+        toFileStream.write((char*)&rows, sizeof(Eigen::Index));
+        toFileStream.write((char*)bias.data(), rows * sizeof(float));
+    }
+}
+
+GRULayer* GRULayer::deserialize(std::ifstream& fromFileStream) {
+    std::vector<Eigen::MatrixXf> weights;
+    std::vector<Eigen::VectorXf> biases;
+
+    for (int i = 0; i < 7; ++i) {
+        Eigen::Index rows, cols;
+        fromFileStream.read((char*)&rows, sizeof(Eigen::Index));
+        fromFileStream.read((char*)&cols, sizeof(Eigen::Index));
+        Eigen::MatrixXf weight(rows, cols);
+        fromFileStream.read((char*)weight.data(), rows * cols * sizeof(float));
+        weights.push_back(weight);
+    }
+
+    for (int i = 0; i < 4; ++i) {
+        Eigen::Index rows;
+        fromFileStream.read((char*)&rows, sizeof(Eigen::Index));
+        Eigen::VectorXf bias(rows);
+        fromFileStream.read((char*)bias.data(), rows * sizeof(float));
+        biases.push_back(bias);
+    }
+
+    GRULayer* layer = new GRULayer(weights[0].cols(), weights[0].rows(), weights[6].rows(), nullptr, nullptr, false);
+    layer->weights = weights;
+    layer->biases = biases;
+    return layer;
+}
