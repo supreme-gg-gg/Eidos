@@ -197,3 +197,53 @@ Tensor Conv2D::backward(const Tensor& grad_output) {
     // Return the computed gradient tensor for input
     return grad_input;
 }
+
+void Conv2D::serialize(std::ofstream& toFileStream) const {
+    // Write num of input channels
+    toFileStream.write((char*)&(input_shape[0]), sizeof(int));
+    // Write num of output channels
+    int oc = weights.size();
+    toFileStream.write((char*)&oc, sizeof(int));
+
+    // Write the layer attributes
+    toFileStream.write((char*)&kernel_size_, sizeof(int));
+    toFileStream.write((char*)&stride_, sizeof(int));
+    toFileStream.write((char*)&padding_, sizeof(int));
+
+    // Write the weights and biases
+    for (int i = 0; i < weights.size(); ++i) {
+        toFileStream.write((char*)weights[i].data(), weights[i].size() * sizeof(float));
+    }
+    for (int i = 0; i < biases.size(); ++i) {
+        toFileStream.write((char*)biases[i].data(), biases[i].size() * sizeof(float));
+    }
+}
+
+Conv2D* Conv2D::deserialize(std::ifstream& fromFileStream) {
+    // Read the number of input channels
+    int input_channels;
+    fromFileStream.read((char*)&input_channels, sizeof(int));
+
+    // Read the number of output channels
+    int output_channels;
+    fromFileStream.read((char*)&output_channels, sizeof(int));
+
+    // Read the layer attributes
+    int kernel_size, stride, padding;
+    fromFileStream.read((char*)&kernel_size, sizeof(int));
+    fromFileStream.read((char*)&stride, sizeof(int));
+    fromFileStream.read((char*)&padding, sizeof(int));
+
+    // Create a new Conv2D layer
+    Conv2D* layer = new Conv2D(input_channels, output_channels, kernel_size, stride, padding);
+
+    // Read the weights and biases
+    for (int i = 0; i < output_channels; ++i) {
+        fromFileStream.read((char*)layer->get_weights()[i]->data(), input_channels * kernel_size * kernel_size * sizeof(float));
+    }
+    for (int i = 0; i < output_channels; ++i) {
+        fromFileStream.read((char*)layer->get_bias()[i]->data(), 1 * sizeof(float));
+    }
+
+    return layer;
+}

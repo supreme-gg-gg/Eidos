@@ -26,6 +26,24 @@ class Optimizer {
      */
     virtual void optimize(Layer& layer) = 0; // Works directly on Layer objects.
 
+    /**
+     * @brief Get the name of the optimizer.
+     * 
+     * @return std::string The name of the optimizer.
+     */
+    virtual std::string get_name() const = 0;
+
+    /**
+     * @brief Serialize the optimizer to a file.
+     * 
+     * This function serializes the optimizer to a file stream. It is intended to be
+     * overridden by derived classes to implement serialization of optimizer-specific
+     * parameters.
+     * 
+     * @param toFileStream Reference to the output file stream.
+     */
+    virtual void serialize(std::ofstream& toFileStream) const = 0;
+
     virtual ~Optimizer() = default;
 };
 
@@ -44,6 +62,18 @@ public:
     explicit SGD(float learning_rate): learning_rate(learning_rate) {}
 
     void optimize(Layer& layer) override;
+
+    std::string get_name() const override { return "SGD"; }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write(reinterpret_cast<const char*>(&learning_rate), sizeof(float));
+    }
+
+    static SGD* deserialize(std::ifstream& fromFileStream) {
+        float learning_rate;
+        fromFileStream.read(reinterpret_cast<char*>(&learning_rate), sizeof(float));
+        return new SGD(learning_rate);
+    }
 };
 
 class Adam : public Optimizer {
@@ -52,6 +82,12 @@ public:
     : learning_rate(learning_rate), beta1(beta1), beta2(beta2), epsilon(epsilon), t(0) {};
 
     void optimize(Layer& layer) override;
+
+    std::string get_name() const override { return "Adam"; }
+
+    void serialize(std::ofstream& toFileStream) const override;
+
+    static Adam* deserialize(std::ifstream& fromFileStream);
 
 private:
     struct Moments {

@@ -48,6 +48,12 @@ public:
      * @return A vector of Eigen::MatrixXf representing the transformed gradients.
      */
     Tensor backward(const Tensor& grad) override;
+
+    bool has_weights() const override { return false; }
+    bool has_bias() const override { return false; }
+    std::string get_name() const override { return "Flatten"; }
+    void serialize(std::ofstream& toFileStream) const override {};
+    static FlattenLayer* deserialize(std::ifstream& fromFileStream);
 };
 
 #endif //FLATTEN_LAYER_H

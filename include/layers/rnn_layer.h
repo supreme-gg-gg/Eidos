@@ -96,6 +96,10 @@ public:
      */
     std::vector<Eigen::VectorXf*> get_bias() override { return get_pointers(biases); }
     std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
+
+    std::string get_name() const override { return "RNN"; }
+    
+    void serialize(std::ofstream& toFileStream) const override {};
     
     ~RNNLayer() = default;
 

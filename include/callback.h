@@ -15,6 +15,10 @@ class Callback {
 public:
     virtual void on_epoch_end(int epoch, float loss) = 0;
     virtual bool should_stop() const { return false;};
+
+    virtual std::string get_name() const = 0;
+    virtual void serialize(std::ofstream& toFileStream) const = 0;
+    
     virtual ~Callback() {}
 };
 
@@ -86,6 +90,37 @@ public:
     bool should_stop() const override {
         return stop_training;
     }
+
+    /**
+     * @brief Get the name of the callback.
+     * 
+     * @return The name of the callback as a string.
+     */
+    std::string get_name() const override { return "EarlyStopping"; }
+
+    /**
+     * @brief Serialize the callback to a file stream.
+     * 
+     * @param toFileStream The output file stream to write the serialized data.
+     */
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write((char*)&patience, sizeof(int));
+        toFileStream.write((char*)&best_loss, sizeof(float));
+        toFileStream.write((char*)&epochs_since_improvement, sizeof(int));
+    }
+
+    static EarlyStopping* deserialize(std::ifstream& fromFileStream) {
+        int patience;
+        float best_loss;
+        int epochs_since_improvement;
+        fromFileStream.read((char*)&patience, sizeof(int));
+        fromFileStream.read((char*)&best_loss, sizeof(float));
+        fromFileStream.read((char*)&epochs_since_improvement, sizeof(int));
+        EarlyStopping* early_stopping = new EarlyStopping(patience);
+        early_stopping->best_loss = best_loss;
+        early_stopping->epochs_since_improvement = epochs_since_improvement;
+        return early_stopping;
+    }
 };
 
 /**
@@ -121,6 +156,18 @@ public:
         if (epoch % print_interval == 0) {
             std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
         }
+    }
+
+    std::string get_name() const override { return "PrintLoss"; }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write((char*)&print_interval, sizeof(int));
+    }
+
+    static PrintLoss* deserialize(std::ifstream& fromFileStream) {
+        int print_interval;
+        fromFileStream.read((char*)&print_interval, sizeof(int));
+        return new PrintLoss(print_interval);
     }
 };
 

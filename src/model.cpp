@@ -2,8 +2,10 @@
 #include "../include/console.hpp"
 #include "../include/csvparser.h"
 #include "../include/layer.h"
+#include "../include/layers.h"
 #include "../include/activation_fns.h"
 #include "../include/optimizer.h"
+#include "../include/loss_fns.h"
 #include "../include/layers/flatten_layer.h"
 #include "../include/tensor.hpp"
 #include "../include/preprocessors.h"
@@ -232,4 +234,174 @@ void Model::Test(ImageInputData& data, Loss& loss_function) {
     float accuracy = static_cast<float>(correct_predictions) / data.testing.inputs.size();
     std::cout << "Test Loss: " << test_loss / data.testing.inputs.size() << std::endl;
     std::cout << "Test Accuracy: " << accuracy * 100.0 << "%" << std::endl;
+}
+
+void Model::Serialize(std::string toFilePath, bool override_warning) {
+    // Check if the file already exists
+    if (std::filesystem::exists(toFilePath)) {
+        if (override_warning) {
+            Console::log("File already exists.", Console::WARNING);
+            std::cout << "Do you want to overwrite the file? (y/n): ";
+            char choice;
+            std::cin >> choice;
+            if (choice != 'y') {
+                Console::log("Serialization aborted.", Console::WARNING);
+                return;
+            }
+        }
+        // Delete the file if the user chooses to overwrite in order to avoid unexpected behavior
+        std::filesystem::remove(toFilePath);
+    }
+    std::ofstream file(toFilePath, std::ios::binary);
+    if (!file.is_open()) {
+        Console::log("Failed to open file for serialization", Console::ERROR);
+        return;
+    }
+    else {
+        Console::log("File opened for serialization", Console::DEBUG);
+    }
+
+    // Maximum size of layer name
+    size_t NameBuffSize = 32;
+    file.write(reinterpret_cast<char*>(&NameBuffSize), sizeof(size_t));
+    
+    size_t num_layers = layers.size();
+    // Write the number of layers
+    file.write(reinterpret_cast<char*>(&num_layers), sizeof(size_t));
+    
+    for (auto& layer : layers) {
+        file.write(reinterpret_cast<const char*>(layer->get_name().c_str()), NameBuffSize);
+        layer->serialize(file);
+    }
+    
+    // Write the set loss function and optimizer
+    if (loss_function != nullptr) {
+        file.write(reinterpret_cast<const char*>(loss_function->get_name().c_str()), NameBuffSize);
+    } else {
+        std::string empty = "";
+        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+    }
+    if (optimizer != nullptr) {
+        file.write(reinterpret_cast<const char*>(optimizer->get_name().c_str()), NameBuffSize);
+        optimizer->serialize(file);
+    } else {
+        std::string empty = "";
+        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+    }
+
+    size_t num_callbacks = callbacks.size();
+    file.write(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
+    for (auto& callback : callbacks) {
+        file.write(reinterpret_cast<const char*>(callback->get_name().c_str()), NameBuffSize);
+        callback->serialize(file);
+    }
+
+    file.close();
+}
+
+void Model::Deserialize(std::string fromFilePath) {
+    std::ifstream file(fromFilePath, std::ios::binary);
+    if (!file.is_open()) {
+        Console::log("Failed to open file for deserialization", Console::ERROR);
+        return;
+    }
+
+    size_t NameBuffSize;
+    file.read(reinterpret_cast<char*>(&NameBuffSize), sizeof(size_t));
+    
+    size_t num_layers;
+    file.read(reinterpret_cast<char*>(&num_layers), sizeof(size_t));
+    
+    for (size_t i = 0; i < num_layers; ++i) {
+        char* name = (char*)malloc(NameBuffSize);
+        file.read(name, NameBuffSize);
+        std::string layer_name(name);
+        free(name);
+        
+        if (layer_name == "Dense") {
+            layers.emplace_back(DenseLayer::deserialize(file));
+        } else if (layer_name == "Conv2D") {
+            layers.emplace_back(Conv2D::deserialize(file));
+        } else if (layer_name == "MaxPooling2D") {
+            layers.emplace_back(MaxPooling2D::deserialize(file));
+        } else if (layer_name == "AveragePooling2D") {
+            layers.emplace_back(AveragePooling2D::deserialize(file));
+        } else if (layer_name == "Flatten") {
+            layers.emplace_back(FlattenLayer::deserialize(file));
+        } else if (layer_name == "ReLU") {
+            layers.emplace_back(ReLU::deserialize(file));
+        } else if (layer_name == "LeakyReLU") {
+            layers.emplace_back(LeakyReLU::deserialize(file));
+        } else if (layer_name == "Sigmoid") {
+            layers.emplace_back(Sigmoid::deserialize(file));
+        } else if (layer_name == "Softmax") {
+            layers.emplace_back(Softmax::deserialize(file));
+        } else if (layer_name == "Tanh") {
+            layers.emplace_back(Tanh::deserialize(file));
+        } else if (layer_name == "Dropout") {
+            layers.emplace_back(Dropout::deserialize(file));
+        } else if (layer_name == "BatchNorm") {
+            layers.emplace_back(BatchNorm::deserialize(file));
+        }
+        else {
+            Console::log("Unknown layer type: " + layer_name, Console::ERROR);
+            return;
+        }
+    }
+    
+    char* loss_name = (char*)malloc(NameBuffSize);
+    file.read(loss_name, NameBuffSize);
+    std::string loss_fn_name(loss_name);
+    free(loss_name);
+    if (loss_fn_name == "") {
+        loss_function = nullptr;
+    } else if (loss_fn_name == "MSELoss") {
+        loss_function = new MSELoss();
+    } else if (loss_fn_name == "CrossEntropyLoss") {
+        loss_function = new CrossEntropyLoss();
+    } else if (loss_fn_name == "CategoricalCrossEntropyLoss") {
+        loss_function = new CategoricalCrossEntropyLoss();
+    } else if (loss_fn_name == "BinaryCrossEntropyLoss") {
+        loss_function = new BinaryCrossEntropyLoss();
+    }
+    else {
+        Console::log("Unknown loss function: " + loss_fn_name, Console::ERROR);
+        return;
+    }
+    
+    char* opt_name = (char*)malloc(NameBuffSize);
+    file.read(opt_name, NameBuffSize);
+    std::string opt_fn_name(opt_name);
+    free(opt_name);
+    if (opt_fn_name == "") {
+        optimizer = nullptr;
+    } else if (opt_fn_name == "SGD") {
+        optimizer = SGD::deserialize(file);
+    } else if (opt_fn_name == "Adam") {
+        optimizer = Adam::deserialize(file);
+    }
+    else {
+        Console::log("Unknown optimizer: " + opt_fn_name, Console::ERROR);
+        return;
+    }
+
+    size_t num_callbacks;
+    file.read(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
+    for (size_t i = 0; i < num_callbacks; ++i) {
+        char* callback_name = (char*)malloc(NameBuffSize);
+        file.read(callback_name, NameBuffSize);
+        std::string callback_fn_name(callback_name);
+        free(callback_name);
+        if (callback_fn_name == "PrintLoss") {
+            callbacks.push_back(PrintLoss::deserialize(file));
+        } else if (callback_fn_name == "EarlyStopping") {
+            callbacks.push_back(EarlyStopping::deserialize(file));
+        }
+        else {
+            Console::log("Unknown callback: " + callback_fn_name, Console::ERROR);
+            return;
+        }
+    }
+
+    file.close();
 }

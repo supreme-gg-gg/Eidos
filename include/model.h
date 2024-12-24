@@ -208,7 +208,7 @@ public:
      */
     size_t num_layers() const;
 
-    void Serialize(std::string toFilePath);
+    void Serialize(std::string toFilePath, bool override_warning = true);
     void Deserialize(std::string fromFilePath);
 
     ~Model() = default;

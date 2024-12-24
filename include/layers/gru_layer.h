@@ -84,6 +84,8 @@ public:
     std::vector<Eigen::VectorXf*> get_bias() override { return get_pointers(biases); }
     std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
 
+    void serialize(std::ofstream& toFileStream) const override {};
+
 protected:
     template <typename T>
     std::vector<T*> get_pointers(std::vector<T>& vec) {

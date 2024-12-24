@@ -61,6 +61,18 @@ Tensor MaxPooling2D::backward(const Tensor& grad_output) {
     return grad_input;
 }
 
+void MaxPooling2D::serialize(std::ofstream& toFileStream) const {
+    toFileStream.write((char*)&pool_size, sizeof(int));
+    toFileStream.write((char*)&stride, sizeof(int));
+}
+
+MaxPooling2D* MaxPooling2D::deserialize(std::ifstream& fromFileStream) {
+    int pool_size, stride;
+    fromFileStream.read((char*)&pool_size, sizeof(int));
+    fromFileStream.read((char*)&stride, sizeof(int));
+    return new MaxPooling2D(pool_size, stride);
+}
+
 AveragePooling2D::AveragePooling2D(int pool_size, int stride) : pool_size(pool_size), stride(stride) {}
 
 Tensor AveragePooling2D::forward(const Tensor& input) {
@@ -104,4 +116,16 @@ Tensor AveragePooling2D::backward(const Tensor& grad_output) {
     }
 
     return grad_input;
+}
+
+void AveragePooling2D::serialize(std::ofstream& toFileStream) const {
+    toFileStream.write((char*)&pool_size, sizeof(int));
+    toFileStream.write((char*)&stride, sizeof(int));
+}
+
+AveragePooling2D* AveragePooling2D::deserialize(std::ifstream& fromFileStream) {
+    int pool_size, stride;
+    fromFileStream.read((char*)&pool_size, sizeof(int));
+    fromFileStream.read((char*)&stride, sizeof(int));
+    return new AveragePooling2D(pool_size, stride);
 }

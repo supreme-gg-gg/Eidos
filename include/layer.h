@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include "tensor.hpp"
+#include <fstream>
 
 /*
  * Abstract base class for a neural network layer
@@ -44,6 +45,8 @@ public:
 
     virtual std::string get_name() const { return "Layer"; }
 
+    virtual void serialize(std::ofstream& toFileStream) const = 0;
+    
     // Virtual destructor to allow proper cleanup of derived classes
     virtual ~Layer() = default;
 };

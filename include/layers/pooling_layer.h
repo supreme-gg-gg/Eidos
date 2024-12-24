@@ -32,6 +32,9 @@ public:
 
     std::string get_name() const override { return "MaxPooling2D"; }
 
+    void serialize(std::ofstream& toFileStream) const override;
+    static MaxPooling2D* deserialize(std::ifstream& fromFileStream);
+
 private:
     int pool_size;
     int stride;
@@ -65,6 +68,9 @@ public:
     Tensor backward(const Tensor& grad_output) override;
 
     std::string get_name() const override { return "AveragePooling2D"; }
+
+    void serialize(std::ofstream& toFileStream) const override;
+    static AveragePooling2D* deserialize(std::ifstream& fromFileStream);
 
 private:
     int pool_size;

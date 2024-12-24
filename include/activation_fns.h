@@ -34,6 +34,11 @@ public:
      * @return The gradient of the loss with respect to the input of the activation function.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+
+    std::string get_name() const override { return "ReLU"; }
+    static ReLU* deserialize(std::ifstream& fromFileStream) {
+        return new ReLU();
+    }
 };
 
 /**
@@ -72,6 +77,17 @@ public:
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
+    std::string get_name() const override { return "LeakyReLU"; }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write((char*)&alpha, sizeof(float));
+    }
+    static LeakyReLU* deserialize(std::ifstream& fromFileStream) {
+        float alpha;
+        fromFileStream.read((char*)&alpha, sizeof(float));
+        return new LeakyReLU(alpha);
+    }
+
 private:
     float alpha;  // The slope for negative values
 };
@@ -109,6 +125,11 @@ class Sigmoid: public Activation {
      * @return Eigen::MatrixXf The gradient of the loss with respect to the input of the Sigmoid function.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+
+    std::string get_name() const override { return "Sigmoid"; }
+    static Sigmoid* deserialize(std::ifstream& fromFileStream) {
+        return new Sigmoid();
+    }
 };
 
 
@@ -142,6 +163,11 @@ class Softmax: public Activation {
      * @return Eigen::MatrixXf The gradient of the loss with respect to the input of the Softmax function.
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
+
+    std::string get_name() const override { return "Softmax"; }
+    static Softmax* deserialize(std::ifstream& fromFileStream) {
+        return new Softmax();
+    }
 };
 
 /**
@@ -182,6 +208,10 @@ class Tanh: public Activation {
      */
     Eigen::MatrixXf backward(const Eigen::MatrixXf& grad_output) override;
 
+    std::string get_name() const override { return "Tanh"; }
+    static Tanh* deserialize(std::ifstream& fromFileStream) {
+        return new Tanh();
+    }
 };
 
 #endif //ACTIVATION_FNS_H

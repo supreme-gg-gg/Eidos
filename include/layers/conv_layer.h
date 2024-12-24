@@ -87,6 +87,10 @@ public:
     std::vector<Eigen::VectorXf*> get_bias() override { return get_pointers(biases); }
     std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
 
+    std::string get_name() const override { return "Conv2D"; }
+    void serialize(std::ofstream& toFileStream) const override;
+    static Conv2D* deserialize(std::ifstream& fromFileStream);
+
 protected:
     template <typename T>
     std::vector<T*> get_pointers(std::vector<T>& vec) {

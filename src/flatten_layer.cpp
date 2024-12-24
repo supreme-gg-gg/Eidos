@@ -63,3 +63,8 @@ Tensor FlattenLayer::backward(const Tensor& grad_output) {
     // Return the reshaped gradient as a tensor
     return grad_input;
 }
+
+FlattenLayer* FlattenLayer::deserialize(std::ifstream& fromFileStream) {
+    // No attributes to deserialize
+    return new FlattenLayer();
+}

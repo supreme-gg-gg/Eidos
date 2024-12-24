@@ -79,6 +79,10 @@ public:
         }
         return grad_input;
     }
+
+    std::string get_name() const override { return "Activation"; }
+
+    void serialize(std::ofstream& toFileStream) const override {} // no parameters to serialize
 };
 
 #endif //ACTIVATIONS_H
