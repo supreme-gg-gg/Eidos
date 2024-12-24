@@ -28,7 +28,8 @@ public:
      * @param shuffle Whether to shuffle the data.
      */
     NumericDataLoader(const std::string& filePath, 
-                      const std::string labelsHeaderName = "labels");
+                      const std::string labelsHeaderName, 
+                      std::map<std::string, int>& labelsOneHotMapping);
 
     /**
      * @brief Constructor to initialize with features and labels.
