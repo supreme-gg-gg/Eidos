@@ -2,6 +2,9 @@
 #include "../include/tensor.hpp"
 #include <random>
 #include <Eigen/Dense>
+#include <thread>
+#include <mutex>
+#include <iostream>
 
 Conv2D::Conv2D(int input_channels, int output_channels, 
                     int kernel_size, int stride, int padding)
@@ -102,33 +105,71 @@ Tensor Conv2D::forward(const Tensor& input) {
     
     // Create output tensor
     Tensor output(C_out, H_out, W_out);
+    
+    // Create threads for parallel computation
+    std::vector<std::thread> threads;
+    int num_threads = std::thread::hardware_concurrency();
+    for (int thd = 0; thd < num_threads; ++thd) {
+        threads.emplace_back([&](int thd){
+            // Each thread processes a subset of output channels
+            for (int c_out = thd; c_out < C_out; c_out+=num_threads) {
+                // Initialize the output channel with biases
+                output[c_out] = Eigen::MatrixXf::Constant(H_out, W_out, biases[c_out](0));
+                for (int c_in = 0; c_in < C_in; ++c_in) {
+                    // Extract the weight kernel for this output-input channel pair
+                    Eigen::MatrixXf kernel = weights[c_out].row(c_in);
+                    kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
 
-    // Perform the convolution operation
-    for (int c_out = 0; c_out < C_out; ++c_out) {
-        // Initialize the output channel with biases
-        output[c_out] = Eigen::MatrixXf::Constant(H_out, W_out, biases[c_out](0));
-        for (int c_in = 0; c_in < C_in; ++c_in) {
-            // Extract the weight kernel for this output-input channel pair
-            Eigen::MatrixXf kernel = weights[c_out].row(c_in);
-            kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
+                    // Perform the convolution operation
+                    for (int i = 0; i < H_out; ++i) {
+                        for (int j = 0; j < W_out; ++j) {
+                            // Calculate the region in the padded input
+                            int start_row = i * stride_;
+                            int start_col = j * stride_;
 
-            // Perform the convolution operation
-            for (int i = 0; i < H_out; ++i) {
-                for (int j = 0; j < W_out; ++j) {
-                    // Calculate the region in the padded input
-                    int start_row = i * stride_;
-                    int start_col = j * stride_;
-
-                    // Extract the region of interest
-                    Eigen::MatrixXf region = padded_input[c_in].block(
-                        start_row, start_col, kernel_size_, kernel_size_);
-
-                    // Perform element-wise multiplication and sum
-                    output[c_out](i, j) += (region.array() * kernel.array()).sum();
+                            // Extract the region of interest
+                            Eigen::MatrixXf region = padded_input[c_in].block(
+                                start_row, start_col, kernel_size_, kernel_size_);
+                            
+                            // Perform element-wise multiplication and sum
+                            output[c_out](i, j) += (region.array() * kernel.array()).sum();
+                        }
+                    }
                 }
             }
-        }
+        }, thd);
     }
+    // Wait for all threads to finish
+    for (auto& thd : threads) {
+        thd.join();
+    }
+    
+    // // Perform the convolution operation
+    // for (int c_out = 0; c_out < C_out; ++c_out) {
+    //     // Initialize the output channel with biases
+    //     output[c_out] = Eigen::MatrixXf::Constant(H_out, W_out, biases[c_out](0));
+    //     for (int c_in = 0; c_in < C_in; ++c_in) {
+    //         // Extract the weight kernel for this output-input channel pair
+    //         Eigen::MatrixXf kernel = weights[c_out].row(c_in);
+    //         kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
+
+    //         // Perform the convolution operation
+    //         for (int i = 0; i < H_out; ++i) {
+    //             for (int j = 0; j < W_out; ++j) {
+    //                 // Calculate the region in the padded input
+    //                 int start_row = i * stride_;
+    //                 int start_col = j * stride_;
+
+    //                 // Extract the region of interest
+    //                 Eigen::MatrixXf region = padded_input[c_in].block(
+    //                     start_row, start_col, kernel_size_, kernel_size_);
+
+    //                 // Perform element-wise multiplication and sum
+    //                 output[c_out](i, j) += (region.array() * kernel.array()).sum();
+    //             }
+    //         }
+    //     }
+    // }
 
     return output;
 }
