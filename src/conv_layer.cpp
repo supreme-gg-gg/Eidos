@@ -143,33 +143,6 @@ Tensor Conv2D::forward(const Tensor& input) {
     for (auto& thd : threads) {
         thd.join();
     }
-    
-    // // Perform the convolution operation
-    // for (int c_out = 0; c_out < C_out; ++c_out) {
-    //     // Initialize the output channel with biases
-    //     output[c_out] = Eigen::MatrixXf::Constant(H_out, W_out, biases[c_out](0));
-    //     for (int c_in = 0; c_in < C_in; ++c_in) {
-    //         // Extract the weight kernel for this output-input channel pair
-    //         Eigen::MatrixXf kernel = weights[c_out].row(c_in);
-    //         kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
-
-    //         // Perform the convolution operation
-    //         for (int i = 0; i < H_out; ++i) {
-    //             for (int j = 0; j < W_out; ++j) {
-    //                 // Calculate the region in the padded input
-    //                 int start_row = i * stride_;
-    //                 int start_col = j * stride_;
-
-    //                 // Extract the region of interest
-    //                 Eigen::MatrixXf region = padded_input[c_in].block(
-    //                     start_row, start_col, kernel_size_, kernel_size_);
-
-    //                 // Perform element-wise multiplication and sum
-    //                 output[c_out](i, j) += (region.array() * kernel.array()).sum();
-    //             }
-    //         }
-    //     }
-    // }
 
     return output;
 }
@@ -178,61 +151,76 @@ Tensor Conv2D::backward(const Tensor& grad_output) {
     // Initialize gradient tensors
     Tensor grad_input(input_shape);  // Initialize the gradient for input
 
-    // Iterate through each output channel
-    for (int c_out = 0; c_out < output_shape[0]; ++c_out) {
-        // Extract the gradient for the output channel
-        Eigen::MatrixXf grad_output_channel = grad_output[c_out];
+    // Create threads for parallel computation
+    std::vector<std::thread> threads;
+    std::mutex grad_input_mutex; // mutex for protecting grad_input
+    int num_threads = std::thread::hardware_concurrency();
+    for (int thd = 0; thd < num_threads; ++thd) {
+        threads.emplace_back([&](int thd){
+            // Iterate through each output channel
+            for (int c_out = thd; c_out < output_shape[0]; c_out += num_threads) {
+                // Extract the gradient for the output channel
+                Eigen::MatrixXf grad_output_channel = grad_output[c_out];
 
-        // Update biases: dL/db_i = sum(dL/dz_i) for all i
-        grad_biases[c_out](0) = grad_output_channel.sum();
+                // Update biases: dL/db_i = sum(dL/dz_i) for all i
+                grad_biases[c_out](0) = grad_output_channel.sum();
 
-        // Iterate through each input channel
-        for (int c_in = 0; c_in < input_shape[0]; ++c_in) {
+                // Iterate through each input channel
+                for (int c_in = 0; c_in < input_shape[0]; ++c_in) {
 
-            // Weight gradient computation using valid convolution
-            for (int i = 0; i < output_shape[1]; ++i) {
-                for (int j = 0; j < output_shape[2]; ++j) {
-                    int start_row = i * stride_;
-                    int start_col = j * stride_;
+                    // Weight gradient computation using valid convolution
+                    for (int i = 0; i < output_shape[1]; ++i) {
+                        for (int j = 0; j < output_shape[2]; ++j) {
+                            int start_row = i * stride_;
+                            int start_col = j * stride_;
 
-                    // Check if the kernel goes out of bounds
-                    if (start_row + kernel_size_ > cache_input[c_in].rows() || 
-                        start_col + kernel_size_ > cache_input[c_in].cols()) {
-                        continue; // Skip this position
+                            // Check if the kernel goes out of bounds
+                            if (start_row + kernel_size_ > cache_input[c_in].rows() || 
+                                start_col + kernel_size_ > cache_input[c_in].cols()) {
+                                continue; // Skip this position
+                            }
+
+                            // Extract the valid region from the input
+                            Eigen::MatrixXf region = cache_input[c_in].block(start_row, start_col, kernel_size_, kernel_size_);
+
+                            // Accumulate gradients for weights
+                            Eigen::MatrixXf region_flat = Eigen::Map<Eigen::MatrixXf>(region.data(), 1, region.size());
+                            grad_weights[c_out].row(c_in) += region_flat * grad_output_channel(i, j);
+                        }
                     }
 
-                    // Extract the valid region from the input
-                    Eigen::MatrixXf region = cache_input[c_in].block(start_row, start_col, kernel_size_, kernel_size_);
+                    // Extract the weight kernel for this output-input channel pair
+                    Eigen::MatrixXf kernel = weights[c_out].row(c_in);
+                    kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
 
-                    // Accumulate gradients for weights
-                    Eigen::MatrixXf region_flat = Eigen::Map<Eigen::MatrixXf>(region.data(), 1, region.size());
-                    grad_weights[c_out].row(c_in) += region_flat * grad_output_channel(i, j);
+                    // Flip the kernel 180 degrees for convolution. 
+                    Eigen::MatrixXf flipped_kernel = kernel.colwise().reverse().rowwise().reverse();
+
+                    // Compute the gradient for the input tensor using full convolution
+                    Eigen::MatrixXf grad_output_padded = Eigen::MatrixXf::Zero(
+                        grad_output_channel.rows() + 2 * (kernel_size_ - 1),
+                        grad_output_channel.cols() + 2 * (kernel_size_ - 1)
+                    );
+
+                    grad_output_padded.block(kernel_size_ - 1, kernel_size_ - 1, 
+                                            grad_output_channel.rows(), grad_output_channel.cols()) = grad_output_channel;
+
+                    for (int i = 0; i < grad_output_channel.rows(); ++i) {
+                        for (int j = 0; j < grad_output_channel.cols(); ++j) {
+                            Eigen::MatrixXf region = grad_output_padded.block(i, j, kernel_size_, kernel_size_);
+                            grad_input_mutex.lock(); // Lock the mutex before updating the shared resource
+                            grad_input[c_in](i, j) += (region.array() * flipped_kernel.array()).sum();
+                            grad_input_mutex.unlock();
+                        }
+                    }
                 }
             }
+        }, thd);
+    }
 
-            // Extract the weight kernel for this output-input channel pair
-            Eigen::MatrixXf kernel = weights[c_out].row(c_in);
-            kernel = Eigen::Map<Eigen::MatrixXf>(kernel.data(), kernel_size_, kernel_size_);
-
-            // Flip the kernel 180 degrees for convolution. 
-            Eigen::MatrixXf flipped_kernel = kernel.colwise().reverse().rowwise().reverse();
-
-            // Compute the gradient for the input tensor using full convolution
-            Eigen::MatrixXf grad_output_padded = Eigen::MatrixXf::Zero(
-                grad_output_channel.rows() + 2 * (kernel_size_ - 1),
-                grad_output_channel.cols() + 2 * (kernel_size_ - 1)
-            );
-
-            grad_output_padded.block(kernel_size_ - 1, kernel_size_ - 1, 
-                                     grad_output_channel.rows(), grad_output_channel.cols()) = grad_output_channel;
-
-            for (int i = 0; i < grad_output_channel.rows(); ++i) {
-                for (int j = 0; j < grad_output_channel.cols(); ++j) {
-                    Eigen::MatrixXf region = grad_output_padded.block(i, j, kernel_size_, kernel_size_);
-                    grad_input[c_in](i, j) += (region.array() * flipped_kernel.array()).sum();
-                }
-            }
-        }
+    // Wait for all threads to finish
+    for (auto& thd : threads) {
+        thd.join();
     }
 
     // Return the computed gradient tensor for input

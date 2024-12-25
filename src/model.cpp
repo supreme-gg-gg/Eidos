@@ -117,7 +117,6 @@ void Model::Train(const ImageInputData& data,
             total_loss += loss;
             backward();
             optimize();
-            Console::log("Epoch: " + std::to_string(epoch) + " Sample: " + std::to_string(i) + " Loss: " + std::to_string(loss), Console::DEBUG);
         }
         float average_loss = total_loss / data.training.inputs.size();
         
