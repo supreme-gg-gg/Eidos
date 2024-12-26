@@ -214,8 +214,9 @@ public:
      * @param toFilePath The file path where the model will be saved.
      * @param override_warning If true, the function will override the existing file without warning. Default is true.
      * @param weights_only If true, only the model weights will be serialized. Default is true.
+     * @param save_architecture If true, the model architecture will be saved in a text file. Default is true.
      */
-    void Serialize(std::string toFilePath, bool override_warning = true, bool weights_only=true);
+    void Serialize(std::string toFilePath, bool override_warning = true, bool weights_only=true, bool save_architecture=true);
     
     /**
      * @brief Deserializes the model from a file.

@@ -127,4 +127,5 @@ BatchNorm* BatchNorm::deserialize(std::ifstream& fromFileStream) {
     fromFileStream.read((char*)layer->get_bias()[0]->data(), num_features * sizeof(float));
     fromFileStream.read((char*)layer->get_running_mean()[0]->data(), num_features * sizeof(float));
     fromFileStream.read((char*)layer->get_running_variance()[0]->data(), num_features * sizeof(float));
+    return layer;
 }

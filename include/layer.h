@@ -100,8 +100,17 @@ public:
      * @brief Get the name of the layer.
      * 
      * @return A string representing the name of the layer.
+     * 
+     * @note Should be overridden in derived classes to return the specific layer name
      */
     virtual std::string get_name() const { return "Layer"; }
+
+    /**
+     * @brief Returns the details of the layer.
+     * 
+     * @return std::string The details of the layer.
+     */
+    virtual std::string get_details() const { return ""; }
 
     /**
      * @brief Serializes the layer to the given output file stream.

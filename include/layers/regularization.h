@@ -49,6 +49,10 @@ public:
 
     std::string get_name() const override { return "Dropout"; }
 
+    std::string get_details() const override {
+        return "Probability: " + std::to_string(probability) + "\n";
+    }
+
     void serialize(std::ofstream& toFileStream) const override {
         toFileStream.write((char*)&probability, sizeof(float));
     }
@@ -157,6 +161,11 @@ public:
     std::vector<Eigen::VectorXf*> get_running_variance() { return {&running_variance}; }
 
     std::string get_name() const override { return "BatchNorm"; }
+    std::string get_details() const override {
+        return "Number of Features: " + std::to_string(num_features) + "\n" +
+               "Epsilon: " + std::to_string(epsilon) + "\n";
+    }
+
     void serialize(std::ofstream& toFileStream) const override;
     static BatchNorm* deserialize(std::ifstream& fromFileStream);
 

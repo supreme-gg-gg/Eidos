@@ -268,7 +268,7 @@ void Model::Test(ImageInputData& data, Loss* loss_function) {
     std::cout << "Test Accuracy: " << accuracy * 100.0 << "%" << std::endl;
 }
 
-void Model::Serialize(std::string toFilePath, bool override_warning, bool weights_only) {
+void Model::Serialize(std::string toFilePath, bool override_warning, bool weights_only, bool save_architecture) {
     // Check if the file already exists
     if (std::filesystem::exists(toFilePath)) {
         if (override_warning) {
@@ -302,29 +302,72 @@ void Model::Serialize(std::string toFilePath, bool override_warning, bool weight
         file.write(reinterpret_cast<const char*>(layer->get_name().c_str()), NameBuffSize);
         layer->serialize(file);
     }
-    
-    if (!weights_only){
-        // Write the set loss function and optimizer
-        if (loss_function != nullptr) {
-            file.write(reinterpret_cast<const char*>(loss_function->get_name().c_str()), NameBuffSize);
-        } else {
-            std::string empty = "";
-            file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
-        }
-        if (optimizer != nullptr) {
-            file.write(reinterpret_cast<const char*>(optimizer->get_name().c_str()), NameBuffSize);
-            optimizer->serialize(file);
-        } else {
-            std::string empty = "";
-            file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+
+    if (save_architecture) {
+
+        // Remove ".bin" from the file path
+        size_t pos = toFilePath.rfind(".bin");
+        if (pos != std::string::npos && pos == toFilePath.length() - 4) {
+            toFilePath.erase(pos); // Remove ".bin"
         }
 
-        size_t num_callbacks = callbacks.size();
-        file.write(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
-        for (auto& callback : callbacks) {
-            file.write(reinterpret_cast<const char*>(callback->get_name().c_str()), NameBuffSize);
-            callback->serialize(file);
+        // Write the architecture to a text file
+        std::ofstream architectureFile(toFilePath + ".txt", std::ios::out);
+        if (!architectureFile.is_open()) {
+            Console::log("Failed to open architecture file for writing", Console::ERROR);
+            return;
         }
+
+        // Write layers, layer info, loss function, and optimizer
+        file << "Model Architecture:\n\n# Layers\n" << std::endl;
+        for (size_t i = 0; i < num_layers; ++i) {
+            architectureFile << "Layer " << i + 1<< ":\n";
+            architectureFile << "   Type: " << layers[i]->get_name() << std::endl;
+            architectureFile << layers[i]->get_details() << std::endl;
+        }
+
+        architectureFile << "   #Loss Function: ";
+        if (loss_function != nullptr) {
+            architectureFile << loss_function->get_name() << std::endl;
+        } else {
+            architectureFile << "None" << std::endl;
+        }
+
+        architectureFile << "   #Optimizer: ";
+        if (optimizer != nullptr) {
+            architectureFile << optimizer->get_name() << std::endl;
+        } else {
+            architectureFile << "None" << std::endl;
+        }
+
+        architectureFile.close();
+    }
+
+    if (weights_only) {
+        file.close();
+        return;
+    }
+    
+    // Write the set loss function and optimizer
+    if (loss_function != nullptr) {
+        file.write(reinterpret_cast<const char*>(loss_function->get_name().c_str()), NameBuffSize);
+    } else {
+        std::string empty = "";
+        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+    }
+    if (optimizer != nullptr) {
+        file.write(reinterpret_cast<const char*>(optimizer->get_name().c_str()), NameBuffSize);
+        optimizer->serialize(file);
+    } else {
+        std::string empty = "";
+        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+    }
+
+    size_t num_callbacks = callbacks.size();
+    file.write(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
+    for (auto& callback : callbacks) {
+        file.write(reinterpret_cast<const char*>(callback->get_name().c_str()), NameBuffSize);
+        callback->serialize(file);
     }
 
     file.close();
