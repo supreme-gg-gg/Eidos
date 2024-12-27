@@ -1,5 +1,5 @@
-#include "../include/optimizer.h"
-#include "../include/layer.h"
+#include "../include/Eidos/optimizer.h"
+#include "../include/Eidos/layer.h"
 #include <cmath>
 #include <Eigen/Dense>
 

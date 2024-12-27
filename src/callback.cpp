@@ -1,5 +1,5 @@
-#include "../include/callback.h"
-#include "../include/model.h"
+#include "../include/Eidos/callback.h"
+#include "../include/Eidos/model.h"
 #include <iostream>
 #include <fstream>
 

@@ -1,4 +1,4 @@
-#include "../include/console.hpp"
+#include "../include/Eidos/console.hpp"
 
 namespace Console {
     bool debugMode;

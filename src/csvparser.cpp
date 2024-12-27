@@ -1,5 +1,5 @@
-#include "../include/csvparser.h"
-#include "../include/console.hpp"
+#include "../include/Eidos/csvparser.h"
+#include "../include/Eidos/console.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>

@@ -1,6 +1,6 @@
+#include "../include/Eidos/layers/rnn_layer.h"
 #include <Eigen/Dense>
 #include <iostream>
-#include "../include/layers/rnn_layer.h"
 
 // Constructor
 RNNLayer::RNNLayer(int input_size, int hidden_size, int output_size, Activation* activation, bool output_sequence)

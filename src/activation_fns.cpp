@@ -1,4 +1,4 @@
-#include "../include/activation_fns.h"
+#include "../include/Eidos/activation_fns.h"
 #include <Eigen/Dense>
 #include <iostream>
 

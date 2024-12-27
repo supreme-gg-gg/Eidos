@@ -1,4 +1,4 @@
-#include "../include/layers/gru_layer.h"
+#include "../include/Eidos/layers/gru_layer.h"
 #include <Eigen/Dense>
 #include <iostream>
 

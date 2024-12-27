@@ -1,5 +1,5 @@
-#include "../include/layers/conv_layer.h"
-#include "../include/tensor.hpp"
+#include "../include/Eidos/layers/conv_layer.h"
+#include "../include/Eidos/tensor.hpp"
 #include <random>
 #include <Eigen/Dense>
 #include <thread>
