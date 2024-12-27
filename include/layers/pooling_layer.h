@@ -32,6 +32,11 @@ public:
 
     std::string get_name() const override { return "MaxPooling2D"; }
 
+    std::string get_details() const override {
+        return "   Pool Size: " + std::to_string(pool_size) + "\n" +
+               "   Stride: " + std::to_string(stride) + "\n";
+    }
+
     void serialize(std::ofstream& toFileStream) const override;
     static MaxPooling2D* deserialize(std::ifstream& fromFileStream);
 

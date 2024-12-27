@@ -54,8 +54,8 @@ public:
 
     std::string get_name() const override { return "Flatten"; }
     std::string get_details() const override {
-        return "Input Shape: " + std::to_string(input_shape[0]) + "x" + std::to_string(input_shape[1]) + "x" + std::to_string(input_shape[2]) +
-            "\nOutput Shape: " + std::to_string(output_shape[0]) + "x" + std::to_string(output_shape[1]);
+        return "   Input Shape: " + std::to_string(input_shape[0]) + "x" + std::to_string(input_shape[1]) + "x" + std::to_string(input_shape[2]) +
+            "\n   Output Shape: " + std::to_string(output_shape[0]) + "x" + std::to_string(output_shape[1]) + "\n";
     }
     
     void serialize(std::ofstream& toFileStream) const override {};

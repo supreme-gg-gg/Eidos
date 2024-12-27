@@ -100,9 +100,9 @@ public:
     std::string get_name() const override { return "RNN"; }
 
     std::string get_details() const override {
-        std::string details = "Hidden Size: " + std::to_string(hidden_state.size()) + "\n";
-        details += "Output Size: " + std::to_string(biases[1].size()) + "\n";
-        details += "Activation: " + activation->get_name() + "\n";
+        std::string details = "   Hidden Size: " + std::to_string(hidden_state.size()) + "\n";
+        details += "   Output Size: " + std::to_string(biases[1].size()) + "\n";
+        details += "   Activation: " + activation->get_name() + "\n";
         return details;
     }
   

@@ -43,8 +43,8 @@ public:
     std::string get_name() const override { return "Dense"; }
 
     std::string get_details() const override {
-        return "Input Size: " + std::to_string(weights.rows()) + "\n" +
-               "Output Size: " + std::to_string(weights.cols());
+        return "   Input Size: " + std::to_string(weights.rows()) + "\n" +
+               "   Output Size: " + std::to_string(weights.cols()) + "\n";
     }
     
     /**

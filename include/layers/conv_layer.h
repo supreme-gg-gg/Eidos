@@ -90,11 +90,11 @@ public:
     std::string get_name() const override { return "Conv2D"; }
 
     std::string get_details() const override {
-        return "Input Shape: " + std::to_string(input_shape[0]) + "x" + std::to_string(input_shape[1]) + "x" + std::to_string(input_shape[2]) + "\n" +
-               "Output Shape: " + std::to_string(output_shape[0]) + "x" + std::to_string(output_shape[1]) + "x" + std::to_string(output_shape[2]) + "\n" +
-               "Kernel Size: " + std::to_string(kernel_size_) + "\n" +
-               "Stride: " + std::to_string(stride_) + "\n" +
-               "Padding: " + std::to_string(padding_);
+        return "   Input Shape: " + std::to_string(input_shape[0]) + "x" + std::to_string(input_shape[1]) + "x" + std::to_string(input_shape[2]) + "\n" +
+               "   Output Shape: " + std::to_string(output_shape[0]) + "x" + std::to_string(output_shape[1]) + "x" + std::to_string(output_shape[2]) + "\n" +
+               "   Kernel Size: " + std::to_string(kernel_size_) + "\n" +
+               "   Stride: " + std::to_string(stride_) + "\n" +
+               "   Padding: " + std::to_string(padding_) + "\n";
     }
     
     void serialize(std::ofstream& toFileStream) const override;

@@ -268,7 +268,8 @@ void Model::Test(ImageInputData& data, Loss* loss_function) {
     std::cout << "Test Accuracy: " << accuracy * 100.0 << "%" << std::endl;
 }
 
-void Model::Serialize(std::string toFilePath, bool override_warning, bool weights_only, bool save_architecture) {
+void Model::Serialize(std::string toFilePath, bool override_warning, 
+    bool weights_only, bool save_architecture) {
     // Check if the file already exists
     if (std::filesystem::exists(toFilePath)) {
         if (override_warning) {
@@ -332,16 +333,16 @@ void Model::Serialize(std::string toFilePath, bool override_warning, bool weight
             architectureFile << layers[i]->get_details() << std::endl;
         }
 
-        architectureFile << "   #Loss Function: ";
+        architectureFile << "# Loss Function:\n";
         if (loss_function != nullptr) {
-            architectureFile << loss_function->get_name() << std::endl;
+            architectureFile << "   " + loss_function->get_name() + "\n";
         } else {
             architectureFile << "None" << std::endl;
         }
 
-        architectureFile << "   #Optimizer: ";
+        architectureFile << "# Optimizer:\n";
         if (optimizer != nullptr) {
-            architectureFile << optimizer->get_name() << std::endl;
+            architectureFile << "   " + optimizer->get_name() + "\n";
         } else {
             architectureFile << "None" << std::endl;
         }

@@ -50,7 +50,7 @@ public:
     std::string get_name() const override { return "Dropout"; }
 
     std::string get_details() const override {
-        return "Probability: " + std::to_string(probability) + "\n";
+        return "   Probability: " + std::to_string(probability) + "\n";
     }
 
     void serialize(std::ofstream& toFileStream) const override {
