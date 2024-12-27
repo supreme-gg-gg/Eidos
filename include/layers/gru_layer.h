@@ -71,8 +71,13 @@ public:
     Tensor backward(const Tensor& grad_output) override;
 
     // Get the name of the layer
-    std::string get_name() const override {
-        return "GRU";
+    std::string get_name() const override { return "GRU"; }
+
+    std::string get_details() const override {
+        return "   Hidden Size: " + std::to_string(hidden_state.size()) + "\n" +
+               "   Output Size: " + std::to_string(biases[3].size()) + "\n" +
+               "   Activation: " + activation->get_name() + "\n" +
+               "   Gate Activation: " + gate_activation->get_name() + "\n";
     }
 
     bool has_weights() const override { return true; }
@@ -83,6 +88,9 @@ public:
 
     std::vector<Eigen::VectorXf*> get_bias() override { return get_pointers(biases); }
     std::vector<Eigen::VectorXf*> get_grad_bias() override { return get_pointers(grad_biases); }
+
+    void serialize(std::ofstream& toFileStream) const override;
+    static GRULayer* deserialize(std::ifstream& fromFileStream);
 
 protected:
     template <typename T>

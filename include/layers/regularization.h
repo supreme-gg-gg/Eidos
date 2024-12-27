@@ -47,6 +47,21 @@ public:
      */
     void set_training(bool training_) override;
 
+    std::string get_name() const override { return "Dropout"; }
+
+    std::string get_details() const override {
+        return "   Probability: " + std::to_string(probability) + "\n";
+    }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write((char*)&probability, sizeof(float));
+    }
+    static Dropout* deserialize(std::ifstream& fromFileStream) {
+        float probability;
+        fromFileStream.read((char*)&probability, sizeof(float));
+        return new Dropout(probability);
+    }
+
     /**
      * @brief Destructor for Dropout layer.
      */
@@ -141,6 +156,18 @@ public:
      * @return Pointer to the gradient of the bias vector.
      */
     std::vector<Eigen::VectorXf*> get_grad_bias() override { return {&grad_beta}; }
+
+    std::vector<Eigen::VectorXf*> get_running_mean() { return {&running_mean}; }
+    std::vector<Eigen::VectorXf*> get_running_variance() { return {&running_variance}; }
+
+    std::string get_name() const override { return "BatchNorm"; }
+    std::string get_details() const override {
+        return "Number of Features: " + std::to_string(num_features) + "\n" +
+               "Epsilon: " + std::to_string(epsilon) + "\n";
+    }
+
+    void serialize(std::ofstream& toFileStream) const override;
+    static BatchNorm* deserialize(std::ifstream& fromFileStream);
 
     /**
      * @brief Destructor for BatchNorm layer.

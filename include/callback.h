@@ -2,7 +2,10 @@
 #define CALLBACK_H
 
 #include <iostream>
+#include <fstream>
 #include <limits>
+
+class Model; // Forward declaration
 
 /**
  * @class Callback
@@ -15,6 +18,10 @@ class Callback {
 public:
     virtual void on_epoch_end(int epoch, float loss) = 0;
     virtual bool should_stop() const { return false;};
+
+    virtual std::string get_name() const = 0;
+    virtual void serialize(std::ofstream& toFileStream) const = 0;
+    
     virtual ~Callback() {}
 };
 
@@ -86,6 +93,37 @@ public:
     bool should_stop() const override {
         return stop_training;
     }
+
+    /**
+     * @brief Get the name of the callback.
+     * 
+     * @return The name of the callback as a string.
+     */
+    std::string get_name() const override { return "EarlyStopping"; }
+
+    /**
+     * @brief Serialize the callback to a file stream.
+     * 
+     * @param toFileStream The output file stream to write the serialized data.
+     */
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write((char*)&patience, sizeof(int));
+        toFileStream.write((char*)&best_loss, sizeof(float));
+        toFileStream.write((char*)&epochs_since_improvement, sizeof(int));
+    }
+
+    static EarlyStopping* deserialize(std::ifstream& fromFileStream) {
+        int patience;
+        float best_loss;
+        int epochs_since_improvement;
+        fromFileStream.read((char*)&patience, sizeof(int));
+        fromFileStream.read((char*)&best_loss, sizeof(float));
+        fromFileStream.read((char*)&epochs_since_improvement, sizeof(int));
+        EarlyStopping* early_stopping = new EarlyStopping(patience);
+        early_stopping->best_loss = best_loss;
+        early_stopping->epochs_since_improvement = epochs_since_improvement;
+        return early_stopping;
+    }
 };
 
 /**
@@ -122,6 +160,48 @@ public:
             std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
         }
     }
+
+    std::string get_name() const override { return "PrintLoss"; }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        toFileStream.write((char*)&print_interval, sizeof(int));
+    }
+
+    static PrintLoss* deserialize(std::ifstream& fromFileStream) {
+        int print_interval;
+        fromFileStream.read((char*)&print_interval, sizeof(int));
+        return new PrintLoss(print_interval);
+    }
 };
 
+
+// Some member functions of SaveModel are defined in a separate source file to avoid circular dependencies
+/**
+ * @class SaveModel
+ * @brief A callback class for saving the model to a file at specified intervals during training.
+ * 
+ * This class inherits from the Callback base class and provides functionality to save the model
+ * to a file at the end of an epoch if the epoch number is a multiple of the specified save interval.
+ */
+class SaveModel : public Callback {
+private:
+    int save_interval;
+    std::string save_path;
+    Model& parent;
+public:
+    SaveModel(Model& model, std::string save_path, int save_interval = 5) : parent(model), save_path(save_path), save_interval(save_interval) {}
+    
+    void on_epoch_end(int epoch, float loss) override;
+    
+    std::string get_name() const override { return "SaveModel"; }
+
+    void serialize(std::ofstream& toFileStream) const override {
+        size_t path_size = save_path.size() + 1; // Include null terminator
+        toFileStream.write((char*)&path_size, sizeof(size_t));
+        toFileStream.write(save_path.c_str(), path_size);
+        toFileStream.write((char*)&save_interval, sizeof(int));
+    }
+
+    static SaveModel* deserialize(std::ifstream& fromFileStream, Model& model);
+};
 #endif //CALLBACK_H

@@ -15,7 +15,8 @@
 #include <unordered_set>
 
 NumericDataLoader::NumericDataLoader(const std::string& filePath, 
-        const std::string labelsHeaderName)
+        const std::string labelsHeaderName,
+        std::map<std::string, int>& labelsOneHotMapping)
 {
     CSVParser parser = CSVParser(',');
     std::vector<std::vector<std::string>> data = parser.parse(filePath);
@@ -124,10 +125,11 @@ NumericDataLoader::NumericDataLoader(const std::string& filePath,
     
     // Preprocess the labels
     for (size_t sample = 1; sample < num_samples; ++sample) {
-        if (oneHotMapping_.find(data[sample][labelIndex]) == oneHotMapping_.end()) {
-            oneHotMapping_[data[sample][labelIndex]] = oneHotMapping_.size();
+        if (labelsOneHotMapping.find(data[sample][labelIndex]) == labelsOneHotMapping.end()) {
+            labelsOneHotMapping[data[sample][labelIndex]] = labelsOneHotMapping.size();
         }
     }
+    oneHotMapping_ = labelsOneHotMapping;
     labels_.resize(num_samples, oneHotMapping_.size());
     for (int sample = 1; sample < data.size(); ++sample) {
         if (oneHotMapping_.find(data[sample][labelIndex]) == oneHotMapping_.end()) {
@@ -229,6 +231,7 @@ ImageInputData NumericDataLoader::train_test_split_image(size_t reshaped_rows, s
 
     // Debug print the content of result
     
+    /*
     for (size_t i = 0; i < result.training.inputs.size(); ++i) {
         std::stringstream ss;
         ss << "Training sample " << i << " number of channels:" << result.training.inputs[i].depth() << "\nFeatures:\n" << result.training.inputs[i][0];
@@ -237,7 +240,7 @@ ImageInputData NumericDataLoader::train_test_split_image(size_t reshaped_rows, s
         ss << "Training sample " << i << " labels:\n" << result.training.targets[i].getSingleMatrix();
         Console::log(ss.str(), Console::DEBUG);
     }
-    /*for (size_t i = 0; i < result.testing.inputs.depth(); ++i) {
+    for (size_t i = 0; i < result.testing.inputs.depth(); ++i) {
         std::stringstream ss;
         ss << "Testing batch " << i << " features:\n" << result.testing.inputs[i];
         Console::log(ss.str(), Console::DEBUG);

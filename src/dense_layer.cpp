@@ -37,3 +37,29 @@ std::vector<Eigen::VectorXf*> DenseLayer::get_bias() {
 std::vector<Eigen::VectorXf*> DenseLayer::get_grad_bias() {
     return { &grad_bias };
 }
+
+void DenseLayer::serialize(std::ofstream& toFileStream) const {
+    Eigen::Index w_rows = weights.rows();
+    Eigen::Index w_cols = weights.cols();
+    Eigen::Index b_rows = bias.rows();
+    Eigen::Index b_cols = bias.cols();
+    toFileStream.write((char*)&w_rows, sizeof(Eigen::Index));
+    toFileStream.write((char*)&w_cols, sizeof(Eigen::Index));
+    toFileStream.write((char*)&b_rows, sizeof(Eigen::Index));
+    toFileStream.write((char*)&b_cols, sizeof(Eigen::Index));
+    toFileStream.write((char*)weights.data(), weights.size() * sizeof(float));
+    toFileStream.write((char*)bias.data(), bias.size() * sizeof(float));
+}
+
+DenseLayer* DenseLayer::deserialize(std::ifstream& fromFileStream) {
+    Eigen::Index w_rows, w_cols, b_rows, b_cols;
+    fromFileStream.read((char*)&w_rows, sizeof(Eigen::Index));
+    fromFileStream.read((char*)&w_cols, sizeof(Eigen::Index));
+    fromFileStream.read((char*)&b_rows, sizeof(Eigen::Index));
+    fromFileStream.read((char*)&b_cols, sizeof(Eigen::Index));
+    
+    DenseLayer* layer = new DenseLayer(w_rows, w_cols);
+    fromFileStream.read((char*)layer->get_weights()[0]->data(), w_rows * w_cols * sizeof(float));
+    fromFileStream.read((char*)layer->get_bias()[0]->data(), b_rows * b_cols * sizeof(float));
+    return layer;
+}

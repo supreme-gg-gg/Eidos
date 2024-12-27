@@ -107,3 +107,25 @@ Tensor BatchNorm::backward(const Tensor& grad_output) {
     
     return Tensor(grad_input);
 }
+
+void BatchNorm::serialize(std::ofstream& toFileStream) const {
+    toFileStream.write((char*)&num_features, sizeof(int));
+    toFileStream.write((char*)&epsilon, sizeof(float));
+    toFileStream.write((char*)gamma.data(), num_features * sizeof(float));
+    toFileStream.write((char*)beta.data(), num_features * sizeof(float));
+    toFileStream.write((char*)running_mean.data(), num_features * sizeof(float));
+    toFileStream.write((char*)running_variance.data(), num_features * sizeof(float));
+}
+
+BatchNorm* BatchNorm::deserialize(std::ifstream& fromFileStream) {
+    int num_features;
+    float epsilon;
+    fromFileStream.read((char*)&num_features, sizeof(int));
+    fromFileStream.read((char*)&epsilon, sizeof(float));
+    BatchNorm* layer = new BatchNorm(num_features, epsilon);
+    fromFileStream.read((char*)layer->get_weights()[0]->data(), num_features * sizeof(float));
+    fromFileStream.read((char*)layer->get_bias()[0]->data(), num_features * sizeof(float));
+    fromFileStream.read((char*)layer->get_running_mean()[0]->data(), num_features * sizeof(float));
+    fromFileStream.read((char*)layer->get_running_variance()[0]->data(), num_features * sizeof(float));
+    return layer;
+}

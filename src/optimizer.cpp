@@ -93,3 +93,20 @@ void Adam::optimize(Layer& layer) {
         *bias -= learning_rate * m_hat_bias.cwiseQuotient(v_hat_bias.cwiseSqrt() + Eigen::VectorXf::Constant(v_hat_bias.rows(), epsilon));
     }
 }
+
+// TODO: the current implementation of serialize and deserialize does not support serialization of the moments map
+void Adam::serialize(std::ofstream& toFileStream) const {
+    toFileStream.write(reinterpret_cast<const char*>(&learning_rate), sizeof(float));
+    toFileStream.write(reinterpret_cast<const char*>(&beta1), sizeof(float));
+    toFileStream.write(reinterpret_cast<const char*>(&beta2), sizeof(float));
+    toFileStream.write(reinterpret_cast<const char*>(&epsilon), sizeof(float));
+}
+
+Adam* Adam::deserialize(std::ifstream& fromFileStream) {
+    float learning_rate, beta1, beta2, epsilon;
+    fromFileStream.read(reinterpret_cast<char*>(&learning_rate), sizeof(float));
+    fromFileStream.read(reinterpret_cast<char*>(&beta1), sizeof(float));
+    fromFileStream.read(reinterpret_cast<char*>(&beta2), sizeof(float));
+    fromFileStream.read(reinterpret_cast<char*>(&epsilon), sizeof(float));
+    return new Adam(learning_rate, beta1, beta2, epsilon);
+}

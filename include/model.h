@@ -158,7 +158,7 @@ public:
      * @param optimizer An optional optimizer to be used during training. If not provided, a default optimizer will be used.
      */
     void Train(const Tensor& training_data, const Tensor& training_labels, 
-        int epochs, Loss& loss_function, Optimizer* optimizer=nullptr,
+        int epochs, Loss* loss_function = nullptr, Optimizer* optimizer=nullptr,
         std::vector<Callback*> callbacks=std::vector<Callback*>());
 
     /**
@@ -171,7 +171,7 @@ public:
      */
     
     void Train(const ImageInputData& data,
-        int epochs, Loss& loss_function, Optimizer* optimizer=nullptr,
+        int epochs, Loss* loss_function = nullptr, Optimizer* optimizer=nullptr,
         std::vector<Callback*> callbacks=std::vector<Callback*>());
 
     /**
@@ -183,7 +183,7 @@ public:
      * @param testing_labels A tensor containing the testing labels.
      * @param loss_function The loss function to evaluate the model's performance.
      */
-    void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss& loss_function);
+    void Test(const Tensor& testing_data, const Tensor& testing_labels, Loss* loss_function = nullptr);
 
     /**
      * @brief Tests the model using the provided image input data and computes the loss.
@@ -191,7 +191,7 @@ public:
      * @param data The image input data to be used for testing the model.
      * @param loss_function The loss function to be used for computing the loss.
      */
-    void Test(ImageInputData& data, Loss& loss_function);
+    void Test(ImageInputData& data, Loss* loss_function = nullptr);
 
     /**
      * @brief Retrieves a pointer to the layer at the specified index.
@@ -208,8 +208,26 @@ public:
      */
     size_t num_layers() const;
 
-    void Serialize(std::string toFilePath);
-    void Deserialize(std::string fromFilePath);
+    /**
+     * @brief Serializes the model to a file.
+     * 
+     * @param toFilePath The file path where the model will be saved.
+     * @param override_warning If true, the function will override the existing file without warning. Default is true.
+     * @param weights_only If true, only the model weights will be serialized. Default is true.
+     * @param save_architecture If true, the model architecture will be saved in a text file. Default is true.
+     */
+    void Serialize(std::string toFilePath, bool override_warning = true, bool weights_only=true, bool save_architecture=true);
+    
+    /**
+     * @brief Deserializes the model from a file.
+     * 
+     * This function reads the model data from the specified file path and 
+     * reconstructs the model in memory.
+     * 
+     * @param fromFilePath The path to the file from which the model should be deserialized.
+     * @param weights_only If true, only the model weights will be deserialized. Default is true.
+     */
+    void Deserialize(std::string fromFilePath, bool weights_only=true);
 
     ~Model() = default;
 };

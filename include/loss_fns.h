@@ -33,7 +33,8 @@ public:
      */
     Eigen::MatrixXf backwardMatrix() const override;
 
-
+    /*  */
+    std::string get_name() const override { return "MSELoss"; }
 };
 
 /**
@@ -60,6 +61,13 @@ public:
     float forwardMatrix(const Eigen::MatrixXf& logits, const Eigen::MatrixXf& targets) override;
 
     Eigen::MatrixXf backwardMatrix() const override;
+
+    /**
+     * @brief Get the name of the loss function.
+     * 
+     * @return The name of the loss function as a string.
+     */
+    std::string get_name() const override { return "CrossEntropyLoss"; }
 };
 
 /**
@@ -103,6 +111,13 @@ public:
      * @return The computed gradient of the cross-entropy loss.
      */
     Eigen::MatrixXf backwardMatrix() const override;
+
+    /**
+     * @brief Get the name of the loss function.
+     * 
+     * @return The name of the loss function as a string.
+     */
+    std::string get_name() const override { return "CategoricalCrossEntropyLoss"; }
 };
 
 /**
@@ -119,6 +134,13 @@ public:
 
     // Backward pass: Compute the gradient of the loss with respect to predictions
     Eigen::MatrixXf backwardMatrix() const override;
+
+    /**
+     * @brief Get the name of the loss function.
+     * 
+     * @return The name of the loss function as a string.
+     */
+    std::string get_name() const override { return "BinaryCrossEntropyLoss"; }
 };
 
 #endif // LOSS_FNS_H

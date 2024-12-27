@@ -41,6 +41,32 @@ public:
     std::vector<Eigen::VectorXf*> get_grad_bias() override;
 
     std::string get_name() const override { return "Dense"; }
+
+    std::string get_details() const override {
+        return "   Input Size: " + std::to_string(weights.rows()) + "\n" +
+               "   Output Size: " + std::to_string(weights.cols()) + "\n";
+    }
+    
+    /**
+     * @brief Serializes the DenseLayer object to a binary stream.
+     *
+     * This function writes the DenseLayer's weights and biases to the provided output stream in binary format.
+     * The structure of the binary serialization is as follows:
+     * 
+     * 1. Eigen::Index w_rows: Number of rows in the weights matrix.
+     * 2. Eigen::Index w_cols: Number of columns in the weights matrix.
+     * 3. Eigen::Index b_rows: Number of rows in the bias vector.
+     * 4. Eigen::Index b_cols: Number of columns in the bias vector.
+     * 5. float[] weights: The weights matrix data, stored in row-major order.
+     * 6. float[] bias: The bias vector data.
+     * 
+     * The sizes of the weights and bias arrays are determined by the dimensions specified in the first four fields.
+     * 
+     * @param toFileStream The output stream to which the DenseLayer object will be serialized.
+     */
+    void serialize(std::ofstream& toFileStream) const override;
+
+    static DenseLayer* deserialize(std::ifstream& fromFileName);
 };
 
 #endif //DENSE_LAYER_H

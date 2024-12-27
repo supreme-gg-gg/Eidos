@@ -56,6 +56,13 @@ public:
     virtual Tensor backward() {
         return Tensor(this->backwardMatrix());
     }
+
+    /**
+     * @brief Get the name of the loss function.
+     * 
+     * @return The name of the loss function as a string.
+     */
+    virtual std::string get_name() const = 0;
 };
 
 #endif // LOSS_H
