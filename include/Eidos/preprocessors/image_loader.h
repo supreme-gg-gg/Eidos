@@ -5,8 +5,8 @@ TODO: the image loader class is currently incomplete. The class is supposed to l
 #ifndef IMAGE_LOADER_H
 #define IMAGE_LOADER_H
 
-#include "../../include/preprocessors/data_loader.h"
-#include "../../include/tensor.hpp"
+#include "data_loader.h"
+#include "../tensor.hpp"
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
