@@ -1,5 +1,14 @@
 enable_testing()
 
+# Google Test setup (if using FetchContent)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        release-1.11.0  # Stable release version
+)
+FetchContent_MakeAvailable(googletest)
+
 # Include the Google Test framework
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
@@ -18,6 +27,8 @@ file(GLOB TEST_FILES
 
 # Add the test executable and link it with Google Test, and your project library (computer_vision_lib)
 add_executable(run_tests ${TEST_FILES})
+
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Link Google Test and your project library (this is where the source code is linked)
 target_link_libraries(run_tests gtest_main Eigen3::Eigen)
