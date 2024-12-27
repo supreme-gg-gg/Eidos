@@ -299,7 +299,13 @@ void Model::Serialize(std::string toFilePath, bool override_warning, bool weight
     file.write(reinterpret_cast<char*>(&num_layers), sizeof(size_t));
     
     for (auto& layer : layers) {
-        file.write(reinterpret_cast<const char*>(layer->get_name().c_str()), NameBuffSize);
+        // Create a fixed-size buffer of 32 bytes
+        char* buffer = new char[NameBuffSize];
+        // Copy the layer name into the buffer, truncating if necessary
+        std::strncpy(buffer, layer->get_name().c_str(), NameBuffSize - 1);
+        // Write the fixed-size buffer to the file
+        file.write(buffer, NameBuffSize);
+        delete[] buffer;
         layer->serialize(file);
     }
 
@@ -317,7 +323,7 @@ void Model::Serialize(std::string toFilePath, bool override_warning, bool weight
             Console::log("Failed to open architecture file for writing", Console::ERROR);
             return;
         }
-
+        
         // Write layers, layer info, loss function, and optimizer
         file << "Model Architecture:\n\n# Layers\n" << std::endl;
         for (size_t i = 0; i < num_layers; ++i) {
@@ -347,26 +353,52 @@ void Model::Serialize(std::string toFilePath, bool override_warning, bool weight
         file.close();
         return;
     }
-    
+
     // Write the set loss function and optimizer
     if (loss_function != nullptr) {
-        file.write(reinterpret_cast<const char*>(loss_function->get_name().c_str()), NameBuffSize);
+        char* buffer = new char[NameBuffSize];
+        // Copy the layer name into the buffer, truncating if necessary
+        std::strncpy(buffer, loss_function->get_name().c_str(), NameBuffSize - 1);
+        // Write the fixed-size buffer to the file
+        file.write(buffer, NameBuffSize);
+        delete[] buffer;
     } else {
         std::string empty = "";
-        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+        char* buffer = new char[NameBuffSize];
+        // Copy the layer name into the buffer, truncating if necessary
+        std::strncpy(buffer, empty.c_str(), NameBuffSize - 1);
+        // Write the fixed-size buffer to the file
+        file.write(buffer, NameBuffSize);
+        delete[] buffer;
     }
+
     if (optimizer != nullptr) {
-        file.write(reinterpret_cast<const char*>(optimizer->get_name().c_str()), NameBuffSize);
+        char* buffer = new char[NameBuffSize];
+        // Copy the layer name into the buffer, truncating if necessary
+        std::strncpy(buffer, optimizer->get_name().c_str(), NameBuffSize - 1);
+        // Write the fixed-size buffer to the file
+        file.write(buffer, NameBuffSize);
+        delete[] buffer;
         optimizer->serialize(file);
     } else {
         std::string empty = "";
-        file.write(reinterpret_cast<const char*>(empty.c_str()), NameBuffSize);
+        char* buffer = new char[NameBuffSize];
+        // Copy the layer name into the buffer, truncating if necessary
+        std::strncpy(buffer, empty.c_str(), NameBuffSize - 1);
+        // Write the fixed-size buffer to the file
+        file.write(buffer, NameBuffSize);
+        delete[] buffer;
     }
 
     size_t num_callbacks = callbacks.size();
     file.write(reinterpret_cast<char*>(&num_callbacks), sizeof(size_t));
     for (auto& callback : callbacks) {
-        file.write(reinterpret_cast<const char*>(callback->get_name().c_str()), NameBuffSize);
+        char* buffer = new char[NameBuffSize];
+        // Copy the layer name into the buffer, truncating if necessary
+        std::strncpy(buffer, callback->get_name().c_str(), NameBuffSize - 1);
+        // Write the fixed-size buffer to the file
+        file.write(buffer, NameBuffSize);
+        delete[] buffer;
         callback->serialize(file);
     }
 
@@ -382,6 +414,14 @@ void Model::Deserialize(std::string fromFilePath, bool weights_only) {
 
     size_t NameBuffSize;
     file.read(reinterpret_cast<char*>(&NameBuffSize), sizeof(size_t));
+    
+    // Clear the current model
+    layers.clear();
+    callbacks.clear();
+    if (!weights_only) {
+        loss_function = nullptr;
+        optimizer = nullptr;
+    }
     
     size_t num_layers;
     file.read(reinterpret_cast<char*>(&num_layers), sizeof(size_t));
@@ -425,6 +465,7 @@ void Model::Deserialize(std::string fromFilePath, bool weights_only) {
             Console::log("Unknown layer type: " + layer_name, Console::ERROR);
             return;
         }
+        Console::log("Layer deserialized: " + layer_name, Console::DEBUG);
     }
 
     if (weights_only) {
