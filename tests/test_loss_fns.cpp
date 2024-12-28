@@ -1,4 +1,4 @@
-#include "../include/loss_fns.h"
+#include "../include/Eidos/loss_fns.h"
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include <algorithm>
-#include "../include/activation_fns.h"
+#include "../include/Eidos/activation_fns.h"
 
 // Unit tests for ReLU
 TEST(ActivationFunctionsTest, ReLUNegativeInput) {

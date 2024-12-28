@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
-#include "../include/tensor.hpp"
-#include "../include/layers/conv_layer.h"
-#include "../include/layers/pooling_layer.h"
+#include "../include/Eidos/tensor.hpp"
+#include "../include/Eidos/layers/conv_layer.h"
+#include "../include/Eidos/layers/pooling_layer.h"
 
 TEST(ConvLayerTest, ForwardPassCorrectShape) {
     Conv2D conv1(3, 16, 3, 1, 1); // 3 input channels, 16 output channels, 3x3 kernel, stride 1, padding 1

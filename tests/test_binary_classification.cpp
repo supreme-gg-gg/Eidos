@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
-#include "../include/activation_fns.h"
-#include "../include/loss_fns.h"
+#include "../include/Eidos/activation_fns.h"
+#include "../include/Eidos/loss_fns.h"
 
 // Test Sigmoid forward pass
 TEST(SigmoidTest, ForwardPass) {
