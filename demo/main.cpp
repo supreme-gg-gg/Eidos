@@ -1,5 +1,5 @@
 #include <Eigen/Dense>
-#include <Eidos>
+#include <Eidos/Eidos.h>
 #include <iostream>
 
 int main() {

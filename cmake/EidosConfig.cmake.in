@@ -1,18 +1,15 @@
 @PACKAGE_INIT@
 
-# Set the path to the include directory
 set(Eidos_INCLUDE_DIRS "@PACKAGE_INCLUDE_DIRS@")
-
-# Set the path to the library directory
 set(Eidos_LIBRARY_DIRS "@PACKAGE_LIBRARY_DIRS@")
-
-# Provide variables for the library and include directories
 set(Eidos_LIBRARIES Eidos)
 
-# Export the include and library directories
-set(Eidos_INCLUDE_DIRS "${Eidos_INCLUDE_DIRS}" CACHE PATH "Include directories for Eidos" FORCE)
-set(Eidos_LIBRARY_DIRS "${Eidos_LIBRARY_DIRS}" CACHE PATH "Library directories for Eidos" FORCE)
-
-# Add the necessary include directories to the CMake path
+# Include directories for Eidos
 include_directories(${Eidos_INCLUDE_DIRS})
+
+# Export the variables for the users
+set(Eidos_INCLUDE_DIRS ${Eidos_INCLUDE_DIRS} CACHE PATH "Include directories for Eidos" FORCE)
+set(Eidos_LIBRARY_DIRS ${Eidos_LIBRARY_DIRS} CACHE PATH "Library directories for Eidos" FORCE)
+
+# Link directories for Eidos
 link_directories(${Eidos_LIBRARY_DIRS})

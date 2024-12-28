@@ -5,27 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(Eidos VERSION 1.0.0 LANGUAGES CXX)
 
-# Add source files for the library
-# add_subdirectory(src)
-
-# Add the tests directory to the build process (but only if tests are enabled)
+# Enable testing if needed
 option(BUILD_TESTS "Build the test suite" OFF)
 if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-# Enable testing
-enable_testing()
-
-# Provide an option for shared/static library
-option(BUILD_SHARED_LIBS "Build shared libraries instead of static libraries" ON)
-
-# Check for Eigen3
-find_package(Eigen3 3.3 REQUIRED)
-
-# Find OpenMP
-find_package(OpenMP)
-
+# Enable debug mode (if specified)
 option(DEBUG_MODE "Enable debug mode" ON)
 
 if(DEBUG_MODE)
@@ -38,30 +24,33 @@ else()
     message(STATUS "Debug mode is disabled.")
 endif()
 
-# Install setup
-include(GNUInstallDirs)
+# Find Eigen3
+find_package(Eigen3 3.3 REQUIRED)
 
-# Only include source files for the core library (no main executable)
+# Find OpenMP (if available)
+find_package(OpenMP)
+
+# Set up the source files for the core library
 file(GLOB SOURCES "src/*.cpp")
-list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")  # Exclude main.cpp
+list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")  # Exclude main.cpp if it exists
 
-# Add the core library target
+# Create the core library
 add_library(Eidos ${SOURCES})
 
-# Set the number of threads to use in Eigen (optional)
-set(EIGEN_NUM_THREADS 8)  # Set to the number of threads you want
+# Set Eigen thread count (optional)
+set(EIGEN_NUM_THREADS 8)  # Adjust based on your needs
 add_definitions(-DEIGEN_NUM_THREADS=${EIGEN_NUM_THREADS})
 
-# Link Eigen3 and OpenMP to the core library
+# Link Eigen and OpenMP (if available)
 target_link_libraries(Eidos PRIVATE Eigen3::Eigen)
 if(OpenMP_CXX_FOUND)
-    target_compile_definitions(Eidos PRIVATE EIGEN_USE_OPENMP)  # Enable OpenMP in Eigen
-    target_link_libraries(Eidos PRIVATE OpenMP::OpenMP_CXX)      # Link OpenMP
+    target_compile_definitions(Eidos PRIVATE EIGEN_USE_OPENMP)
+    target_link_libraries(Eidos PRIVATE OpenMP::OpenMP_CXX)
 else()
     message(WARNING "OpenMP not found, running without multi-threading.")
 endif()
 
-# Install the library
+# Install the core library and headers
 install(
     TARGETS Eidos
     EXPORT EidosTargets
@@ -71,21 +60,12 @@ install(
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-# Install header files
 install(
-    DIRECTORY include/Eidos  # Assumes headers are in the root/include directory
+    DIRECTORY include/Eidos
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-# Export the library target for downstream use
-install(
-    EXPORT EidosTargets
-    FILE EidosTargets.cmake
-    NAMESPACE Eidos::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Eidos
-)
-
-# Generate a config file for find_package
+# Generate and install CMake config files for find_package
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/EidosConfigVersion.cmake"
@@ -93,22 +73,38 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
+# Configure EidosConfig.cmake file
 configure_package_config_file(
-    "${CMAKE_CURRENT_LIST_DIR}/cmake/EidosConfig.cmake.in" # Template file
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/EidosConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/EidosConfig.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Eidos
 )
 
 install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/EidosConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/EidosConfigVersion.cmake"
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/EidosConfig.cmake"
+          "${CMAKE_CURRENT_BINARY_DIR}/EidosConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Eidos
 )
 
-# Export build tree for immediate use after building
+# Install the EidosTargets for downstream projects
+install(
+    EXPORT EidosTargets
+    FILE EidosTargets.cmake
+    NAMESPACE Eidos::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Eidos
+)
+
+# Export targets to use in the build tree
 export(
     EXPORT EidosTargets
     FILE "${CMAKE_CURRENT_BINARY_DIR}/EidosTargets.cmake"
     NAMESPACE Eidos::
 )
+
+# Set include directories for the library
+target_include_directories(Eidos
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
