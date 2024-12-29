@@ -35,13 +35,44 @@ data_loader.print_preview();
 auto data = data_loader.train_test_split(0.8, 32); // 80% training, 32 batch size
 ```
 
-Here, `data` is of type `InputData` which contains the training and testing data of `Dataset` type. The `Dataset` type contains two tensors, `inputs` and `targets`.
+Here, `data` is of type `InputData` (default return type of `train_test_split`) which contains the training and testing data of `Dataset` type. The `Dataset` type contains two tensors, `inputs` and `targets`.
 
 You can implement your own data type and loader by understanding modules in `preprocessing/`.
+
+### Converting Numeric Data to Images
+
+In examples like MNIST, the data is provided as a CSV file with pixel values. You can convert this data to images by specifying the height and width of the images. This can be done easily by first loading the dataset with `NumericDataLoader`, then using the `train_test_split_images` method to convert the data to images.
+
+```cpp
+// reshape into 28x28 images with 80% training data
+auto data = NumericDataLoader("mnist_train.csv", "label", label_map)
+    .train_test_split_images(28, 28, 0.8);
+```
+
+Here `data` is of type `ImageInputData` described in the next section.
 
 ## Image Data
 
 The `ImageDataLoader` class is used to load and preprocess image data. This class provides methods for loading images from a directory, resizing images, normalizing pixel values, and splitting data into training and testing sets.
+
+It provides the following methods:
+
+- `shuffle`: Shuffle the images.
+- `linear_transform`: Apply a linear transformation to the pixel values.
+- `resize`: Resize the images to a specified height and width.
+- `to_grayscale`: Convert the images to grayscale.
+
+> Note that image loader does NOT support batching because each image itself is a 3D tensor. We recommend using `ImageDataLoader` for small datasets.
+
+Here is an example of loading and preprocessing image data using the `ImageDataLoader` class:
+
+```cpp
+ImageDataLoader image_loader("images", "labels");
+image_loader.shuffle().resize(28, 28).to_grayscale();
+auto data = image_loader.train_test_split(0.8);
+```
+
+Here, `data` is of type `ImageInputData` which contains the training and testing data of `ImageDataset` type. The `ImageDataset` type contains two tensors, `images` and `labels`.
 
 ## Conclusion
 

@@ -88,4 +88,4 @@ model.Add(new DenseLayer(16, 3));
 
 ## Conclusion
 
-In this tutorial, we covered additional layer types such as CNNs, RNNs, and regularisation layers. These layers can be used to build more complex models and improve the performance of your machine learning algorithms. You should now move on to the final tutorial where we cover more advanced utilities.
+In this tutorial, we covered additional layer types such as CNNs, RNNs, and regularisation layers. These layers can be used to build more complex models and improve the performance of your machine learning algorithms. You should now move on to the final [tutorial](./utilities.md) where we cover more advanced utilities.

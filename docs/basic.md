@@ -22,6 +22,15 @@ model.set_optimizer(new Adam(0.001)); // Learning rate is 0.001
 model.set_loss_fn(new CrossEntropyLoss());
 ```
 
+The model has a `forward` method that takes in the input and returns the output. It also has a `backward` method that computes the gradients of the loss with respect to the model parameters.
+
+```cpp
+Tensor output = model.forward(input);
+model.backward();
+```
+
+> Note that while the entire library is built on top of custom Tensors, usually you will not need to interact with them directly. The preprocessing functionalities provide powerful abstractions to wrap your data in a format that can be directly fed into the model.
+
 ## Layers and Activations
 
 A layer is a basic building block of a model. Both activation functions and all model layers are derived from the `Layer` class. We support the following layers:
