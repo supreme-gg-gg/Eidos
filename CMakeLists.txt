@@ -5,12 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(Eidos VERSION 1.0.0 LANGUAGES CXX)
 
-# Enable testing if needed
-option(BUILD_TESTS "Build the test suite" OFF)
-if(BUILD_TESTS)
-    add_subdirectory(tests)
-endif()
-
 # Enable debug mode (if specified)
 option(DEBUG_MODE "Enable debug mode" ON)
 
