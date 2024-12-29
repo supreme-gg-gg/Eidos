@@ -44,6 +44,13 @@ else()
     message(WARNING "OpenMP not found, running without multi-threading.")
 endif()
 
+# Set include directories for the library
+target_include_directories(Eidos
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
 # Install the core library and headers
 install(
     TARGETS Eidos
@@ -94,11 +101,3 @@ export(
     FILE "${CMAKE_CURRENT_BINARY_DIR}/EidosTargets.cmake"
     NAMESPACE Eidos::
 )
-
-# Set include directories for the library
-target_include_directories(Eidos
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-

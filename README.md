@@ -2,9 +2,11 @@
 
 ## Description
 
-This is a project for educational purpose to implement MLP, CNN, RNN and variants and helper functions (e.g. data loader) from scratch using only Eigen for parallelized linear algebra in pure C++. The goal is to understand the underlying concepts of these models and how they work. The project is inspired by the libtorch, PyTorch's C++ frontend. We aim to provide a similar API interface to PyTorch and Keras for ease of use.
+Eidos is a project for educational purpose to build an entire deep learning library from scratch in C++. It implemented MLP, CNN, RNN and helper utilities (e.g. data loader) using only Eigen for parallelized linear algebra.
 
-> The models are not optimized for performance like PyTorch. Thus, it will take (considerably) longer to train, especially for CNN. However, we gurantee that performance-wise, on tasks of reasonable complexity, it will be simliar to PyTorch.
+The goal is to understand the underlying concepts of these models and how they work. The project is inspired by the libtorch, PyTorch's C++ frontend. We aim to provide a similar API interface to PyTorch and Keras for ease of use.
+
+> The models are not optimized for performance like PyTorch. Thus, it will take (considerably) longer to train.
 
 ## Installation
 
@@ -28,7 +30,27 @@ You can enable debug mode by adding `-DDEBUG_MODE=ON` to the cmake command. This
 
 ### Pre-built Binaries
 
-This is only provided for certain platforms...
+Pre-built binaries are supported for MacOS, Linux and Windows. You can download the binaries from the [releases page]()
+
+After downloading the tarball, extract it to your desired location:
+
+```sh
+# For Linux and MacOS
+tar -xzvf Eidos.tar.gz -C /desired/location/
+
+# For Windows
+unzip Eidos.zip -d C:\desired\location\
+```
+
+Add the library to your path:
+
+```sh
+# For Linux and MacOS
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/desired/location/lib
+
+# For Windows
+setx PATH "%PATH%;C:\desired\location\lib"
+```
 
 ### Using the installed library
 
@@ -36,7 +58,7 @@ In your source code, include the main header `#include <Eidos/Eidos.h>`. Compile
 
 1. Manual linking with compiler such as `g++ main.cpp -I/path/to/installed/Eidos -I/path/to/Eigen -L/path/to/installed/lib -lEidos`
 
-2. Recommended: cmake's `find_package(Eidos REQUIERD)`. **A sample is provided in `demo/`**
+2. Recommended: cmake's `find_package(Eidos REQUIERD)`. **A sample is provided in `demo/CMakeLists.txt`**
 
 ### Running Tests
 
