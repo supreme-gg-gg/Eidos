@@ -4,17 +4,21 @@
 
 Eidos is a project for educational purpose to build an entire deep learning library from scratch in C++. It implemented MLP, CNN, RNN and helper utilities (e.g. data loader) using only Eigen for parallelized linear algebra.
 
-The goal is to understand the underlying concepts of these models and how they work. The project is inspired by the libtorch, PyTorch's C++ frontend. We aim to provide a similar API interface to PyTorch and Keras for ease of use.
+The goal is to understand the underlying concepts of these models and how they work. The project is inspired by the libtorch, PyTorch's C++ frontend. We aim to provide a similar API interface to PyTorch and Keras for ease of use. We achieved similar performance with PyTorch on simple datasets such as MNIST.
 
-> The models are not optimized for performance like PyTorch. Thus, it will take (considerably) longer to train.
+> DISCLAIMER: The models are not optimized for performance like PyTorch or libtorch. Thus, it will take (considerably) longer to train on large datasets. Please do not use the library for production.
 
 ## Installation
 
 The library is built using CMake and requires Eigen3. Eigen is a C++ template library for parallelized linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 
-You can install Eigen3 using your package manager or download it from the [official website](https://eigen.tuxfamily.org/index.php?title=Main_Page). You can install cmake using your package manager or download it from the [official website](https://cmake.org/).
+- You can install Eigen3 using your package manager or download it from the [official website](https://eigen.tuxfamily.org/index.php?title=Main_Page).
+
+- You can install cmake using your package manager or download it from the [official website](https://cmake.org/).
 
 ### Build From Source (Recommended)
+
+#### MacOS/Linux
 
 The following method will compile and install the library to your local path and allows you to use the library.
 
@@ -26,7 +30,34 @@ cmake .. && make
 sudo make install
 ```
 
-You can enable debug mode by adding `-DDEBUG_MODE=ON` to the cmake command. This will setup utilities such as address sanitizer.
+#### Windows
+
+We support building from scratch on Windows using Microsoft Visual Studio (MSVC) and CMake.
+
+1. After cloninig the repository, generate the Visual Studio solution and project files
+
+```
+mkdir build && cd build
+cmake ..
+```
+
+2. Once the project files are generated, open the `eidos.sln` file in Visual Studio:
+
+```
+.\eidos.sln
+```
+
+3. Select the desired build configuration (Release/Debug) and build the solution.
+
+4. After building, the static library (`.lib` file) will be available in the `build\release` or `build\debug` directory.
+
+_Alternatively, if you use the Developer Command Prompt_:
+
+```
+msbuild eidos.sln /p:Configuration=Release
+```
+
+You can now link your projects to this `.lib` file.
 
 ### Pre-built Binaries
 
@@ -107,7 +138,7 @@ int main() {
 }
 ```
 
-You should consult the full documentation in `docs/` and sample code in `demo/` for more powerful features such as CNN, RNN, regularisation, custom training loops, data preprocessing, etc.
+You should consult the full documentation in `docs/` and sample code in `demo/` for more powerful features such as CNN, RNN, regularisation, custom training loops, data preprocessing, etc. You can check out `docs/experiments.md` to explore ways to experiment with different dataset with Eidos.
 
 ## About our name
 

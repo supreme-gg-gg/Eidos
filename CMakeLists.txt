@@ -5,18 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(Eidos VERSION 1.0.0 LANGUAGES CXX)
 
-# Enable debug mode (if specified)
-option(DEBUG_MODE "Enable debug mode" ON)
-
-if(DEBUG_MODE)
-    message(STATUS "Debug mode is enabled.")
-    set(CMAKE_BUILD_TYPE Debug)
-    add_definitions(-DDEBUG_MODE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
-    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
-else()
-    message(STATUS "Debug mode is disabled.")
-endif()
+include(GNUInstallDirs)
 
 # Find Eigen3
 find_package(Eigen3 3.3 REQUIRED)
