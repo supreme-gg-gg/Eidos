@@ -1,15 +1,18 @@
-#include "../../include/model.h"
-#include "../../include/optimizer.h"
-#include "../../include/loss_fns.h"
-#include "../../include/layers.h"
-#include "../../include/activation_fns.h"
-#include "../../include/debugger.hpp"
-
+#include <Eidos/Eidos.h>
 #include <iostream>
 #include <Eigen/Dense>
 
+/*
+This example shows how to train a simple Recurrent Neural Network (RNN) model
+using the Eidos library. Usage of GRU is almost identical.
+
+We will use some random data to demonstrate the training process. In real life you
+will load the sequence using built in functions or custom methods.
+
+This also demostrates a simple usage of the Debugger class to track the weight changes.
+*/
+
 int main() {
-    // Sample data for Many-to-Many sequence classification (no batching)
     // Input dimensions: sequence_length = 10, input_size = 20
     Eigen::MatrixXf inputs(20, 30);  // 10 time steps, 20 features per time step
     Eigen::MatrixXf targets(20, 10);  // Target: 10 time steps, 5 classes per time step (one-hot)
@@ -34,13 +37,10 @@ int main() {
     CrossEntropyLoss loss_fn;
 
     model.set_optimizer(optimizer);
+    model.set_loss_function(loss_fn);
     
     Debugger debugger;
     debugger.track_layer(model.get_layer(0));
-
-    // Debugging Variables
-    Eigen::MatrixXf output;
-    float loss;
 
     for (int epoch = 0; epoch < 40; ++epoch) {
 
@@ -54,12 +54,12 @@ int main() {
         std::cout << "Epoch: " << epoch << " Loss: " << loss << std::endl;
 
         // Backward pass
-        Tensor grad = loss_fn.backward();  // Backprop through loss function
-        model.backward(grad);                      // Backprop through the model layers
+        model.backward();
 
         // Update weights
         model.optimize();
 
+        // Print weight change norms with debugger
         debugger.print_weight_change_norms();
     }
 

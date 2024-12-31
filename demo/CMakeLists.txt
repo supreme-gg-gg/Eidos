@@ -12,7 +12,7 @@ find_package(Eidos REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 
 # Add the user's source files (main.cpp in this case)
-add_executable(my_app main.cpp)
+add_executable(my_app mnist_conv.cpp)
 
 # Link the Eidos library to the executable
 target_link_libraries(my_app PRIVATE Eidos)
