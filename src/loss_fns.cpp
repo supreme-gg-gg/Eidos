@@ -1,4 +1,4 @@
-#include "../include/loss_fns.h"
+#include "../include/Eidos/loss_fns.h"
 #include <Eigen/Dense>
 #include <iostream>
 
@@ -7,7 +7,7 @@ float MSELoss::forwardMatrix(const Eigen::MatrixXf& predictions, const Eigen::Ma
     this->predictions = predictions;
     this->targets = targets;
     Eigen::MatrixXf diff = predictions - targets;
-    return (diff.array().square().sum()) / predictions.rows();
+    return (diff.array().square().sum()) / (predictions.rows() * predictions.cols());
 }
 
 Eigen::MatrixXf MSELoss::backwardMatrix() const {

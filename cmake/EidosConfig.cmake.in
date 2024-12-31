@@ -1,0 +1,15 @@
+@PACKAGE_INIT@
+
+set(Eidos_INCLUDE_DIRS "@PACKAGE_INCLUDE_DIRS@")
+set(Eidos_LIBRARY_DIRS "@PACKAGE_LIBRARY_DIRS@")
+set(Eidos_LIBRARIES Eidos)
+
+# Include directories for Eidos
+include_directories(${Eidos_INCLUDE_DIRS})
+
+# Export the variables for the users
+set(Eidos_INCLUDE_DIRS ${Eidos_INCLUDE_DIRS} CACHE PATH "Include directories for Eidos" FORCE)
+set(Eidos_LIBRARY_DIRS ${Eidos_LIBRARY_DIRS} CACHE PATH "Library directories for Eidos" FORCE)
+
+# Link directories for Eidos
+link_directories(${Eidos_LIBRARY_DIRS})

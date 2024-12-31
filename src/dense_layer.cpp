@@ -1,4 +1,4 @@
-#include "../include/layers/dense_layer.h"
+#include "../include/Eidos/layers/dense_layer.h"
 
 DenseLayer::DenseLayer(int input_size, int output_size)
     : weights(Eigen::MatrixXf::Random(input_size, output_size) * std::sqrt(2.0f / (input_size + output_size))),

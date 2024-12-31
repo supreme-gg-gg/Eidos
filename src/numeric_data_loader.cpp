@@ -1,7 +1,7 @@
-#include "../include/preprocessors/numeric_data_loader.h"
-#include "../include/tensor.hpp"
-#include "../include/console.hpp"
-#include "../include/csvparser.h"
+#include "../include/Eidos/preprocessors/numeric_data_loader.h"
+#include "../include/Eidos/tensor.hpp"
+#include "../include/Eidos/console.hpp"
+#include "../include/Eidos/csvparser.h"
 #include <fstream>
 #include <string>
 #include <vector>

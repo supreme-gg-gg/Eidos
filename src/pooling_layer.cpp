@@ -1,5 +1,5 @@
-#include "../include/layers/pooling_layer.h"
-#include "../include/tensor.hpp"
+#include "../include/Eidos/layers/pooling_layer.h"
+#include "../include/Eidos/tensor.hpp"
 #include <Eigen/Dense>
 #include <thread>
 #include <mutex>

@@ -1,7 +1,7 @@
-#include "../include/layers/regularization.h"
-#include "../include/tensor.hpp"
+#include "../include/Eidos/layers/regularization.h"
+#include "../include/Eidos/tensor.hpp"
+#include "../include/Eidos/console.hpp"
 #include <Eigen/Dense>
-#include "../include/console.hpp"
 
 Dropout::Dropout(float probability) : probability(probability) {}
 

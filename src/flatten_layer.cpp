@@ -1,5 +1,5 @@
-#include "../include/layers/flatten_layer.h"
-#include "../include/tensor.hpp"
+#include "../include/Eidos/layers/flatten_layer.h"
+#include "../include/Eidos/tensor.hpp"
 #include <stdexcept>
 #include <Eigen/Dense>
 

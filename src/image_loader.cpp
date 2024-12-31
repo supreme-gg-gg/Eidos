@@ -1,6 +1,6 @@
-#include "../include/preprocessors/image_loader.h"
-#include "../include/console.hpp"
-#include "../include/csvparser.h"
+#include "../include/Eidos/preprocessors/image_loader.h"
+#include "../include/Eidos/console.hpp"
+#include "../include/Eidos/csvparser.h"
 #include <fstream>
 #include <string>
 #include <vector>
