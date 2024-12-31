@@ -61,7 +61,7 @@ You can now link your projects to this `.lib` file.
 
 ### Pre-built Binaries
 
-Pre-built binaries are supported for MacOS, Linux and Windows. You can download the binaries from the [releases page]()
+Pre-built binaries are supported for MacOS, Linux and Windows. You can download the binaries from the [releases page](https://github.com/supreme-gg-gg/Eidos/releases/tag/v1.0.0)
 
 After downloading the tarball, extract it to your desired location:
 
@@ -87,9 +87,9 @@ setx PATH "%PATH%;C:\desired\location\lib"
 
 In your source code, include the main header `#include <Eidos/Eidos.h>`. Compile your source file by either:
 
-1. Manual linking with compiler such as `g++ main.cpp -I/path/to/installed/Eidos -I/path/to/Eigen -L/path/to/installed/lib -lEidos`
+1. Manual linking with compiler (clang++, g++) such as `g++ main.cpp -I/path/to/installed/Eidos -I/path/to/Eigen -L/path/to/installed/lib -lEidos`, and on MSVC follow [this stackoverflow post](https://stackoverflow.com/questions/23882112/how-to-add-static-libraries-to-a-visual-studio-project/23882710#23882710)
 
-2. Recommended: cmake's `find_package(Eidos REQUIERD)`. **A sample is provided in `demo/CMakeLists.txt`**
+2. Recommended: use cmake's `find_package(Eidos REQUIERD)`. **A sample is provided in `demo/CMakeLists.txt`**
 
 ### Running Tests
 
