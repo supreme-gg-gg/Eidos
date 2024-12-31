@@ -20,15 +20,14 @@ list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")  # Exclude main.cpp
 # Create the core library
 add_library(Eidos ${SOURCES})
 
-# Set Eigen thread count (optional)
-set(EIGEN_NUM_THREADS 8)  # Adjust based on your needs
-add_definitions(-DEIGEN_NUM_THREADS=${EIGEN_NUM_THREADS})
-
 # Link Eigen and OpenMP (if available)
 target_link_libraries(Eidos PRIVATE Eigen3::Eigen)
 if(OpenMP_CXX_FOUND)
     target_compile_definitions(Eidos PRIVATE EIGEN_USE_OPENMP)
     target_link_libraries(Eidos PRIVATE OpenMP::OpenMP_CXX)
+    # Set Eigen thread count (optional)
+    set(EIGEN_NUM_THREADS 8)  # Adjust based on your needs
+    add_definitions(-DEIGEN_NUM_THREADS=${EIGEN_NUM_THREADS})
 else()
     message(WARNING "OpenMP not found, running without multi-threading.")
 endif()
